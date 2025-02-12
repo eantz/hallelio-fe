@@ -65,7 +65,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormMessage>{form.formState.errors.root?.message}</FormMessage>
                 <FormField 
                   control={form.control}
@@ -85,7 +85,7 @@ export default function Home() {
                   control={form.control}
                   name="password"
                   render={({ field }) => (
-                    <FormItem className="mt-4">
+                    <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="*******" {...field} />
