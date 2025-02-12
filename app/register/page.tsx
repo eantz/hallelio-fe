@@ -28,7 +28,7 @@ import { populateFormErrorResponse } from "@/lib/errors"
 import { registerSchema } from "./schema"
 
 
-export default function Home() {
+export default function Register() {
 	const [submitting, setSubmitting] = useState(false)
 
 	const form = useForm<z.infer<typeof registerSchema>>({

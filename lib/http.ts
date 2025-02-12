@@ -1,5 +1,5 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
-import Cookies from 'universal-cookie';
+import { cookies } from "next/headers";
 
 
 function http() {
@@ -10,9 +10,8 @@ function http() {
     }
   });
 
-  const authInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const cookies = new Cookies(null, {path:'/'});
-    const token = cookies.get('token');
+  const authInterceptor = async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
+    const token = (await cookies()).get('token')?.value
   
     if (token !== undefined && token !== null) {
       config.headers?.set('Authorization', 'Bearer ' + token)
@@ -30,7 +29,7 @@ function http() {
   axiosInstance.interceptors.request.use(targetURLInterceptor);
 
 
-  async function get(path: string, params: Record<string, any>) : Promise<any> {
+  async function get(path: string, params: Record<string, any> | null) : Promise<any> {
     return await axiosInstance.get(path, {
       params: params,
     }).then(res => {
