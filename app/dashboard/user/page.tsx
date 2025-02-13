@@ -3,6 +3,7 @@ import { getUsers } from "./actions"
 import { columns } from "./columns"
 import { Button } from "@/components/ui/button"
 import { PaginationState } from "@tanstack/react-table"
+import Link from "next/link"
 
 export default async function User(props: {
   searchParams?: Promise<{
@@ -26,7 +27,10 @@ export default async function User(props: {
 
       <div className="flex items-end flex-col pt-4">
         <div>
-          <Button>Add User</Button>
+          <Button asChild>
+            <Link href="/dashboard/user/add">Add User</Link>
+          </Button>
+          
         </div>
         
       </div>
