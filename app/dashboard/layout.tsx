@@ -1,5 +1,5 @@
 import { DashboardSidebar } from "@/components/shared/dashboard/sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
   children,
@@ -11,8 +11,10 @@ export default function DashboardLayout({
     <section>
       <SidebarProvider>
         <DashboardSidebar />
+        <SidebarInset className="p-4">
+          {children}
+        </SidebarInset>
       </SidebarProvider>
-      {children}
     </section>
   );
 }
