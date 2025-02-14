@@ -1,7 +1,7 @@
 import { UserForm } from "./_form";
 
 
-export default function Register() {
+export default async function AddUser() {
 
 	return (
 		<div className="w-1/2">

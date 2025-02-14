@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react';
+import Link from 'next/link';
 
 export type User = {
   id: number,
@@ -27,7 +28,7 @@ export const columns: ColumnDef<User>[] = [
   {
     id: 'actions',
     cell: ({row}) => {
-      // const user = row.original
+      const user = row.original
 
       return (
         <DropdownMenu>
@@ -40,7 +41,7 @@ export const columns: ColumnDef<User>[] = [
           <DropdownMenuContent>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              Edit
+              <Link href={`/dashboard/user/edit/${user.id}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-red-600 focus:text-red-700">
               Delete

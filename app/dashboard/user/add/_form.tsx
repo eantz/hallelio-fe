@@ -23,19 +23,10 @@ export function UserForm() {
     defaultValues: formInitialState
   })
 
-  // const [formState, formAction, isPending] = useActionState(addUser, {})
-  
-  // if (formState.status === "error") {
-  //   populateFormErrorResponse(form, formState.message?.errors, formState?.formErrors)
-  // }
-
   async function submitHandler(values: z.infer<typeof userSchema>) {
     setSubmitting(true)
-    console.log(values)
 
     const resp = await addUser(values)
-
-    console.log(resp)
 
     if (resp.status == "error") {
       populateFormErrorResponse(form, resp.message?.errors)
