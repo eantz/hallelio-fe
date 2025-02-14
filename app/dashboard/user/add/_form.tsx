@@ -10,9 +10,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export function UserForm() {
   const [submitting, setSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
@@ -31,9 +35,20 @@ export function UserForm() {
 
     const resp = await addUser(values)
 
+    console.log(resp)
+
     if (resp.status == "error") {
       populateFormErrorResponse(form, resp.message?.errors)
+      setSubmitting(false)
+    } else {
+      setIsSuccess(true)
+
+      setTimeout(() => {
+        redirect('/dashboard/user')
+      }, 2000)
     }
+
+    
   }
 
   return (
@@ -41,6 +56,16 @@ export function UserForm() {
       
       <form method="POST" onSubmit={form.handleSubmit(submitHandler)} className="space-y-4 mt-20">
         <FormMessage>{form.formState.errors.root?.message}</FormMessage>
+        
+        {isSuccess ? (
+          <Alert className="bg-green-300 border border-green-600 text-green-950">
+            <Loader className="h-4 w-4" />
+            <AlertTitle className="font-bold">Success adding user!</AlertTitle>
+            <AlertDescription>
+              You will soon be redirected
+            </AlertDescription>
+          </Alert>
+        ) : "" }
 
         <FormField
           control={form.control}
