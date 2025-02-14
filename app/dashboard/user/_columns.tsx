@@ -1,5 +1,6 @@
 'use client';
 
+import { DataTableDeleteAction } from '@/components/shared/dashboard/datatable-delete-action';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ColumnDef } from '@tanstack/react-table'
@@ -43,9 +44,13 @@ export const columns: ColumnDef<User>[] = [
             <DropdownMenuItem>
               <Link href={`/dashboard/user/edit/${user.id}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600 focus:text-red-700">
-              Delete
-            </DropdownMenuItem>
+            
+            <DataTableDeleteAction 
+              deleteEndpoint="/api/user"
+              deleteParams={{
+                id: user.id
+              }}
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       )

@@ -1,9 +1,8 @@
-import { DataTable } from "@/components/shared/dashboard/datatable"
 import { getUsers } from "./actions"
-import { columns } from "./columns"
 import { Button } from "@/components/ui/button"
 import { PaginationState } from "@tanstack/react-table"
 import Link from "next/link"
+import { UserTable } from "./_table"
 
 export default async function User(props: {
   searchParams?: Promise<{
@@ -19,7 +18,7 @@ export default async function User(props: {
     pageIndex: currentPage
   }
 
-  const users = await getUsers(1)
+  const users = getUsers(1)
 
   return (
     <div className="w-full">
@@ -35,13 +34,8 @@ export default async function User(props: {
         
       </div>
       <div className="container mx-auto py-4">
-        <DataTable 
-          columns={columns} 
-          data={users.data?.data} 
-          pagination={pagination}
-        />
+        <UserTable users={users} pagination={pagination} />
       </div>
-
     </div>
   ) 
 }
