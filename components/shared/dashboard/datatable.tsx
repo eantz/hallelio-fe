@@ -3,18 +3,24 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ColumnDef, flexRender, getCoreRowModel, PaginationState, useReactTable } from "@tanstack/react-table";
 import Paginator from "./datatable-paginator";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[],
-  pagination: PaginationState
+  pagination: PaginationState,
+  rowCount: number,
+  router: AppRouterInstance
 }
 
 export function DataTable<TData, TValue> ({
   columns,
   data,
   pagination,
+  rowCount,
+  router
 }: DataTableProps<TData, TValue>)  {
 
   const table = useReactTable({
@@ -22,17 +28,28 @@ export function DataTable<TData, TValue> ({
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
+    rowCount: rowCount,
     state: {
       pagination
     }
   })
 
   const searchParams = useSearchParams()
+  const pathname = usePathname()
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set(name, value)
+ 
+      return params.toString()
+    },
+    [searchParams]
+  )
 
   const handlePageChange = (pageNum: number) => {
-
-    const params = new URLSearchParams(searchParams);
-    params.set('page', pageNum.toString())
+    router.push(pathname + "?" + createQueryString('page', pageNum.toString()))
+    router.refresh()
   }
 
   return (
@@ -96,7 +113,7 @@ export function DataTable<TData, TValue> ({
         </div>
         <div className="flex justify-end">
           <Paginator
-            currentPage={table.getState().pagination.pageIndex + 1}
+            currentPage={table.getState().pagination.pageIndex}
             totalPages={table.getPageCount()}
             onPageChange={(pageNumber) => handlePageChange(pageNumber)}
             showPreviousNext

@@ -18,20 +18,22 @@ export default function Paginator({
   return (
     <Pagination>
       <PaginationContent>
-        {showPreviousNext && totalPages ? (
+        {showPreviousNext && totalPages && currentPage > 1 ? (
           <PaginationItem>
             <PaginationPrevious
               onClick={() => onPageChange(currentPage - 1)}
               isActive={currentPage > 1}
+              className="cursor-pointer"
             />
           </PaginationItem>
         ) : null}
         {generatePaginationLinks(currentPage, totalPages, onPageChange)}
-        {showPreviousNext && totalPages ? (
+        {showPreviousNext && totalPages && currentPage < totalPages ? (
           <PaginationItem>
             <PaginationNext
               onClick={() => onPageChange(currentPage + 1)}
               isActive={currentPage < totalPages - 1}
+              className="cursor-pointer"
             />
           </PaginationItem>
         ): null}

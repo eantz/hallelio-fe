@@ -5,6 +5,7 @@ import { columns } from "./_columns"
 import { ResponseObject } from "@/lib/http";
 import { use } from "react";
 import AlertDelete from "@/components/shared/dashboard/alert-delete";
+import { useRouter } from "next/navigation";
 
 export function UserTable({
   users,
@@ -14,6 +15,7 @@ export function UserTable({
   pagination: any
 }) {
   const usersData = use(users)
+  const router = useRouter()
 
   return (
     <>
@@ -21,6 +23,8 @@ export function UserTable({
         columns={columns} 
         data={usersData.data?.data} 
         pagination={pagination}
+        rowCount={usersData.data?.total}
+        router={router}
       />
 
       <AlertDelete />

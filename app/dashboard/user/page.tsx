@@ -18,7 +18,7 @@ export default async function User(props: {
     pageIndex: currentPage
   }
 
-  const users = getUsers(1)
+  const users = getUsers(currentPage)
 
   return (
     <div className="w-full">
