@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader } from "../../ui/sidebar";
-import { Users } from "lucide-react";
+import { IdCard, Users } from "lucide-react";
 import { Suspense} from "react";
 import { SidebarUser } from "./sidebar-user";
 import { getActiveUser } from "@/actions/user";
@@ -32,6 +32,11 @@ export function DashboardSidebar() {
               <SidebarMenuItem key="user-menu">
                 <SidebarMenuButton asChild>
                   <Link href="/dashboard/user"><Users /> User Management</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem key="sidebar-menu">
+                <SidebarMenuButton asChild>
+                  <Link href="/dashboard/member"><IdCard /> Member Management</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

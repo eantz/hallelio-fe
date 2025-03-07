@@ -45,7 +45,7 @@ export function UserForm() {
   return (
     <Form {...form}>
       
-      <form method="POST" onSubmit={form.handleSubmit(submitHandler)} className="space-y-4 mt-20">
+      <form method="POST" onSubmit={form.handleSubmit(submitHandler)} className="space-y-4 mt-10">
         <FormMessage>{form.formState.errors.root?.message}</FormMessage>
         
         {isSuccess ? (
@@ -118,7 +118,7 @@ export function UserForm() {
 
         <div className="mt-4">
           <Button type="submit" className="mr-4" disabled={submitting}>Submit</Button>
-          <Button type="reset" variant="secondary" disabled={submitting}>Reset</Button>
+          <Button type="reset" variant="secondary" disabled={submitting} onClick={() => form.reset()}>Reset</Button>
         </div>
       </form>
     </Form>

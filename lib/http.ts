@@ -29,9 +29,10 @@ function http() {
   axiosInstance.interceptors.request.use(targetURLInterceptor);
 
 
-  async function get(path: string, params: Record<string, any> | null) : Promise<any> {
+  async function get(path: string, params: Record<string, any> | null, additionalConfig?: Record<string, any> | undefined) : Promise<any> {
     return await axiosInstance.get(path, {
       params: params,
+      ...additionalConfig
     }).then(res => {
       return res;
     }).catch(error => {
@@ -39,8 +40,12 @@ function http() {
     });
   }
 
-  async function post(path: string, data: Record<string, any>) : Promise<any> {
-    return await axiosInstance.post(path, data)
+  async function post(path: string, data: Record<string, any> | FormData[], additionalConfig?: Record<string, any> | undefined) : Promise<any> {
+    return await axiosInstance.post(
+      path, 
+      data,
+      additionalConfig
+    )
     .then(res => {
       return res;
     }).catch(error => {
@@ -48,8 +53,12 @@ function http() {
     });
   }
 
-  async function put(path: string, data: Record<string, any>) : Promise<any> {
-    return await axiosInstance.put(path, data)
+  async function put(path: string, data: Record<string, any>, additionalConfig?: Record<string, any> | undefined) : Promise<any> {
+    return await axiosInstance.put(
+      path, 
+      data,
+      additionalConfig
+    )
     .then(res => {
       return res;
     }).catch(error => {
@@ -58,7 +67,10 @@ function http() {
   }
 
   async function remove(path: string, data: Record<string, any>) : Promise<any> {
-    return await axiosInstance.delete(path, data)
+    return await axiosInstance.delete(
+      path, 
+      data
+    )
     .then(res => {
       return res;
     }).catch(error => {

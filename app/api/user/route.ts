@@ -11,7 +11,7 @@ export async function DELETE(request: NextRequest) : Promise<NextResponse<Respon
     return NextResponse.json({
       status: "error",
       message: resp.data
-    })
+    }, {status: 500})
   }
 
   return NextResponse.json({
