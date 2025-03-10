@@ -3,40 +3,26 @@ import { z } from "zod"
 import { isValidPhoneNumber } from "react-phone-number-input";
 
 export const memberSchema = z.object({
-  firstName: z.string().max(255).min(3),
-  lastName: z.string().email(),
-  birthPlace: z.string(),
-  birthDate: z.date(),
-  phoneNumber: z
+  first_name: z.string().max(255).min(3),
+  last_name: z.string().max(255),
+  birth_place: z.string(),
+  birth_date: z.date().nullable(),
+  phone_number: z
     .string()
     .refine(isValidPhoneNumber, {'message': 'Invalid Phone Number'})
     .or(z.literal("")),
   address: z.string(),
-  personalIDNumber: z.string(),
-  picture: z.array(
-      z.instanceof(File).refine((file) => file.size < 2 * 1024 * 1024, {
-        message: 'File must be less than 4mb'
-      }).refine((file) => [
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/svg+xml",
-        "image/gif",
-      ].includes(file.type), {
-        message: 'File must be an image'
-      })
-    )
-    .max(1, {message: 'Only 1 file allowd'})
-    .nullable()
+  personal_id_number: z.string(),
+  picture: z.string()
 })
 
 export const formInitialState = {
-  firstName: "",
-  lastName: "",
-  birthPlace: "",
-  birthDate: new Date(),
-  phoneNumber: "",
+  first_name: "",
+  last_name: "",
+  birth_place: "",
+  birth_date: null,
+  phone_number: "",
   address: "",
-  personalIDNumber: "",
-  picture: null
+  personal_id_number: "",
+  picture: ""
 }

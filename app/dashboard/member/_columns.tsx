@@ -9,13 +9,13 @@ import Link from 'next/link';
 
 export type Member = {
   id: number,
-  firstName: string,
-  lastName: string,
-  birthPlace: string,
-  birthDate: string,
-  phoneNumber: string,
+  first_name: string,
+  last_name: string,
+  birth_place: string,
+  birth_date: string,
+  phone_number: string,
   address: string,
-  personalIDNumber: string,
+  personal_id_number: string,
   picture: string
 }
 
@@ -25,15 +25,15 @@ export const columns: ColumnDef<Member>[] = [
     header: 'ID'
   },
   {
-    accessorFn: row => `${row.firstName} ${row.lastName}`,
+    accessorFn: row => `${row.first_name} ${row.last_name}`,
     header: 'Name'
   },
   {
-    accessorFn: row => `${row.birthPlace}, ${row.birthDate}`,
+    accessorFn: row => `${row.birth_place ? row.birth_place + ', ' : ''}${row.birth_date ?? ''}`,
     header: 'Birthday'
   },
   {
-    accessorKey: 'phoneNumber',
+    accessorKey: 'phone_number',
     header: 'Phone Number'
   },
   {

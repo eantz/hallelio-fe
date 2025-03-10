@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 import { formInitialState, memberSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import { addMember } from "./actions";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CalendarIcon, Loader, Upload } from "lucide-react";
+import { CalendarIcon, Loader, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,9 +18,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { DropzoneOptions } from "react-dropzone";
-import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-input";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -48,30 +45,36 @@ export function MemberForm() {
         redirect('/dashboard/member')
       }, 2000)
     }
-
-    
+ 
   }
-  const dropzone = {
-    accept: {
-      "image/*": [".png", ".gif", ".jpeg", ".jpg"],
-    },
-    multiple: false,
-    maxFiles: 1,
-    maxSize: 2 * 1024 * 1024,
-    noDrag: true
-  } satisfies DropzoneOptions;
 
-  const uploadImage = async (files: File[] | null) => {
-    files?.map(async (file : File) => {
+  const uploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files?.length == 0) {
+      return
+    }
+    
+    try {
       const formData = new FormData();
-      formData.append('file', file)
+      formData.append('file', e.target.files[0])
       const resp = await fetch('/api/upload/image', {
         method: 'POST',
         body: formData
       })
 
-      console.log(resp)
-    })
+      const body = await resp.json()
+
+      form.setValue('picture', body.data.file_url)
+    } catch(e: any) {
+      console.log(e.message)
+    }
+    
+  }
+
+  const removeImage = () => {
+    form.setValue('picture', '')
+
+    const fileUploader = document.getElementById('file-uploader')
+    fileUploader?.setAttribute('value', '')
   }
 
   return (
@@ -92,7 +95,7 @@ export function MemberForm() {
 
         <FormField
           control={form.control}
-          name="firstName"
+          name="first_name"
           render={({field}) => (
             <FormItem>
               <FormLabel>First Name</FormLabel>
@@ -108,7 +111,7 @@ export function MemberForm() {
 
         <FormField 
           control={form.control}
-          name="lastName"
+          name="last_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Last Name</FormLabel>
@@ -122,7 +125,7 @@ export function MemberForm() {
 
         <FormField 
           control={form.control}
-          name="birthPlace"
+          name="birth_place"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Birth Place</FormLabel>
@@ -136,7 +139,7 @@ export function MemberForm() {
 
         <FormField 
           control={form.control}
-          name="birthDate"
+          name="birth_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Birth Date</FormLabel>
@@ -162,7 +165,7 @@ export function MemberForm() {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value ?? undefined}
                     onSelect={field.onChange}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
@@ -178,7 +181,7 @@ export function MemberForm() {
 
         <FormField 
           control={form.control}
-          name="phoneNumber"
+          name="phone_number"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
@@ -206,7 +209,7 @@ export function MemberForm() {
 
         <FormField 
           control={form.control}
-          name="personalIDNumber"
+          name="personal_id_number"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Personal ID Number</FormLabel>
@@ -225,51 +228,23 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Picture</FormLabel>
               <FormControl>
-                <FileUploader
-                  value={field.value}
-                  onValueChange={(files) => {
-                    uploadImage(files)
-                    field.onChange(files)
-                  }}
-                  dropzoneOptions={dropzone}
-                  reSelect={true}
-                  className="w-24"
-                >
-                  <FileInput
-                    className={cn(
-                      "bg-gray-400 size-24 grid grid-cols-3 content-center gap-3",
-                    )}
-                  >
-                    <Upload className="size-6 col-start-2" />
-                    
-                  </FileInput>
-                  {field.value && field.value.length > 0 && (
-                    <FileUploaderContent className="absolute bottom-20 size-24 -ml-1 rounded-b-none rounded-t-md flex-row ">
-                      {field.value.map((file, i) => (
-                        <FileUploaderItem
-                          key={i}
-                          index={i}
-                          aria-roledescription={`file ${i + 1} containing ${
-                            file.name
-                          }`}
-                          className="p-0 size-24 mt-1"
-                        >
-                          <div className="size-full">
-                            <AspectRatio className="size-full">
-                              <Image
-                                src={URL.createObjectURL(file)}
-                                alt={file.name}
-                                className="object-cover rounded-md"
-                                fill
-                              />
-                            </AspectRatio>
-                          </div>
-                          
-                        </FileUploaderItem>
-                      ))}
-                    </FileUploaderContent>
-                  )}
-                </FileUploader>
+                <div>
+                  <Input type="file" accept="image/*" onChange={uploadImage} id="file-uploader" />
+                  <Input type="hidden" {...field} />
+                  {field.value != '' ? (
+                    <div className="relative size-24 mt-2">
+                      
+                      <Image src={field.value} alt="photo profile" className="size-24 rounded" fill />
+                      <Button
+                        type="button"
+                        className="absolute top-1 rounded right-1 border p-1 h-6 hover:bg-slate-400"
+                        onClick={removeImage}
+                      >
+                        <Trash2 className="w-4 h-4 hover:stroke-destructive duration-200 ease-in-out" />
+                      </Button>
+                    </div>
+                  ) : ''}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
