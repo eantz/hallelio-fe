@@ -2,7 +2,20 @@
 import { z } from "zod"
 import { isValidPhoneNumber } from "react-phone-number-input";
 
+export type Member = {
+  id: string,
+  first_name: string,
+  last_name: string,
+  birth_place: string,
+  birth_date: string,
+  phone_number: string,
+  address: string,
+  personal_id_number: string,
+  picture: string
+}
+
 export const memberSchema = z.object({
+  id: z.string(),
   first_name: z.string().max(255).min(3),
   last_name: z.string().max(255),
   birth_place: z.string(),
@@ -17,6 +30,7 @@ export const memberSchema = z.object({
 })
 
 export const formInitialState = {
+  id: "",
   first_name: "",
   last_name: "",
   birth_place: "",

@@ -1,11 +1,27 @@
 'use server'
 
-import { memberSchema } from "./../schema";
+import { memberSchema } from "./../../schema";
 import http, { ResponseObject } from "@/lib/http";
 import { format } from "date-fns";
 import { z } from "zod";
 
-export async function addMember(data: z.infer<typeof memberSchema>) : Promise<ResponseObject> {
+export async function getMember(id: string): Promise<ResponseObject> {
+  const resp = await http().get(`/api/member/${id}`, null)
+
+  if (resp.status !== 200) {
+    return {
+      status: "error",
+      message: resp.data,
+    }
+  }
+
+  return {
+    status: "success",
+    data: resp.data,
+  }
+}
+
+export async function editMember(data: z.infer<typeof memberSchema>) : Promise<ResponseObject> {
 
   const params : Record<string, any> = {
     'first_name': data.first_name,
@@ -20,11 +36,13 @@ export async function addMember(data: z.infer<typeof memberSchema>) : Promise<Re
 
   console.log(params)
 
-  const resp = await http().post('/api/member', params);
+  console.log(data.id)
+
+  const resp = await http().put(`/api/member/${data.id}`, params);
 
   console.log(resp.data)
 
-  if (resp.status !== 201) {
+  if (resp.status !== 200) {
     return {
       status: "error",
       message: resp.data,

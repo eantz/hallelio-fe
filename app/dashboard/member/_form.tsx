@@ -1,39 +1,66 @@
 'use client';
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, use, useState } from "react";
 import { useForm } from "react-hook-form";
 import { formInitialState, memberSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { populateFormErrorResponse } from "@/lib/errors";
 import { redirect } from "next/navigation";
-import { addMember } from "./actions";
+import { addMember } from "./add/actions";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CalendarIcon, Loader, Trash2 } from "lucide-react";
+import { CalendarIcon, LoaderCircle, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { PhoneInput } from "@/components/ui/phone-input";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
+import { editMember } from "./edit/[id]/actions";
+import { ResponseObject } from "@/lib/http";
 
-export function MemberForm() {
+export function MemberForm({
+  member
+}: {
+  member?: Promise<ResponseObject>
+}) {
   const [submitting, setSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  const memberData = member ? use(member) : null
+
+  const action = memberData == null ? 'add' : 'edit'
+
   const form = useForm<z.infer<typeof memberSchema>>({
     resolver: zodResolver(memberSchema),
-    defaultValues: formInitialState
+    defaultValues: action == 'add' ? formInitialState : {
+      id: memberData?.data?.id ?? '',
+      first_name: memberData?.data?.first_name ?? '',
+      last_name: memberData?.data?.last_name ?? '',
+      birth_place: memberData?.data?.birth_place ?? '',
+      birth_date: memberData?.data?.birth_date !== null ? parse(memberData?.data?.birth_date || '1970-01-01', 'yyyy-MM-dd', new Date()) : null,
+      phone_number: memberData?.data?.phone_number ?? '',
+      address: memberData?.data?.address ?? '',
+      personal_id_number: memberData?.data?.personal_id_number ?? '',
+      picture: memberData?.data?.picture ?? ''
+    }
   })
 
   async function submitHandler(values: z.infer<typeof memberSchema>) {
     setSubmitting(true)
 
-    const resp = await addMember(values)
+    let resp;
+
+    if (action == 'add') {
+      resp = await addMember(values)
+    } else {
+      resp = await editMember(values)
+    }
+    
 
     if (resp.status == "error") {
       populateFormErrorResponse(form, resp.message?.errors)
@@ -78,20 +105,33 @@ export function MemberForm() {
   }
 
   return (
-    <Form {...form}>
-      
+    <Form {...form}>     
       <form method="POST" onSubmit={form.handleSubmit(submitHandler)} className="space-y-4 mt-10">
         <FormMessage>{form.formState.errors.root?.message}</FormMessage>
         
         {isSuccess ? (
           <Alert className="bg-green-300 border border-green-600 text-green-950">
-            <Loader className="h-4 w-4" />
+            <LoaderCircle className="h-4 w-4 animate-spin" />
             <AlertTitle className="font-bold">Success adding user!</AlertTitle>
             <AlertDescription>
               You will soon be redirected
             </AlertDescription>
           </Alert>
         ) : "" }
+
+        {action == 'edit' ? (
+          <FormField 
+            control={form.control} 
+            name="id"
+            render={({field}) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="hidden" {...field} /> 
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        ) : ''}
 
         <FormField
           control={form.control}
@@ -100,7 +140,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder="Brian" {...field} />
+                <Input placeholder="Brian" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,7 +156,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Last Name</FormLabel>
               <FormControl>
-                <Input placeholder="May" {...field} />
+                <Input placeholder="May" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -130,7 +170,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Birth Place</FormLabel>
               <FormControl>
-                <Input placeholder="Toronto" {...field} />
+                <Input placeholder="Toronto" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -152,6 +192,7 @@ export function MemberForm() {
                         "w-[240px] pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
                       )}
+                      disabled={submitting}
                     >
                       {field.value ? (
                         format(field.value, "PPP")
@@ -186,7 +227,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <PhoneInput placeholder="Enter a phone number" {...field} />
+                <PhoneInput placeholder="Enter a phone number" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -200,7 +241,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Address</FormLabel>
               <FormControl>
-                <Textarea placeholder="Street Ave." rows={5} {...field} />
+                <Textarea placeholder="Street Ave." rows={5} {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -214,7 +255,7 @@ export function MemberForm() {
             <FormItem>
               <FormLabel>Personal ID Number</FormLabel>
               <FormControl>
-                <Input placeholder="8317439473250" {...field} />
+                <Input placeholder="8317439473250" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -229,11 +270,10 @@ export function MemberForm() {
               <FormLabel>Picture</FormLabel>
               <FormControl>
                 <div>
-                  <Input type="file" accept="image/*" onChange={uploadImage} id="file-uploader" />
+                  <Input type="file" accept="image/*" onChange={uploadImage} id="file-uploader" disabled={submitting} />
                   <Input type="hidden" {...field} />
-                  {field.value != '' ? (
+                  {field.value ? (
                     <div className="relative size-24 mt-2">
-                      
                       <Image src={field.value} alt="photo profile" className="size-24 rounded" fill />
                       <Button
                         type="button"

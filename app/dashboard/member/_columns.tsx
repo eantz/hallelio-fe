@@ -6,18 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
-
-export type Member = {
-  id: number,
-  first_name: string,
-  last_name: string,
-  birth_place: string,
-  birth_date: string,
-  phone_number: string,
-  address: string,
-  personal_id_number: string,
-  picture: string
-}
+import { Member } from './schema';
 
 export const columns: ColumnDef<Member>[] = [
   {
@@ -43,7 +32,7 @@ export const columns: ColumnDef<Member>[] = [
   {
     id: 'actions',
     cell: ({row}) => {
-      const user = row.original
+      const member = row.original
 
       return (
         <DropdownMenu>
@@ -56,13 +45,13 @@ export const columns: ColumnDef<Member>[] = [
           <DropdownMenuContent>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Link href={`/dashboard/member/edit/${user.id}`} className="w-full">Edit</Link>
+              <Link href={`/dashboard/member/edit/${member.id}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
             
             <DataTableDeleteAction 
               deleteEndpoint="/api/member"
               deleteParams={{
-                id: user.id
+                id: member.id
               }}
             />
           </DropdownMenuContent>
