@@ -3,30 +3,53 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { formInitialState, userSchema } from "./schema";
-import { useState } from "react";
-import { addUser } from "./action";
+import { use, useState } from "react";
+import { addUser } from "./add/action";
 import { populateFormErrorResponse } from "@/lib/errors";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { redirect } from "next/navigation";
+import { ResponseObject } from "@/lib/http";
+import { editUser } from "./edit/[id]/action";
 
-export function UserForm() {
+export function UserForm({
+  user
+}: {
+  user?: Promise<ResponseObject>
+}) {
   const [submitting, setSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  const userData = user ? use(user) : null
+
+  const action = userData == null ? 'add' : 'edit'
+
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
-    defaultValues: formInitialState
+    defaultValues: action == 'add' ? formInitialState : {
+      id: userData?.data?.id,
+      name: userData?.data?.name,
+      email: userData?.data?.email,
+      password: "",
+      reTypePassword: ""
+    }
   })
 
   async function submitHandler(values: z.infer<typeof userSchema>) {
     setSubmitting(true)
 
-    const resp = await addUser(values)
+    let resp
+    
+    if (action == 'add') {
+      resp = await addUser(values)
+    } else {
+      resp = await editUser(values)
+    }
+    
 
     if (resp.status == "error") {
       populateFormErrorResponse(form, resp.message?.errors)
@@ -50,13 +73,28 @@ export function UserForm() {
         
         {isSuccess ? (
           <Alert className="bg-green-300 border border-green-600 text-green-950">
-            <Loader className="h-4 w-4" />
+            <LoaderCircle className="h-4 w-4 animate-spin" />
             <AlertTitle className="font-bold">Success adding user!</AlertTitle>
             <AlertDescription>
               You will soon be redirected
             </AlertDescription>
           </Alert>
         ) : "" }
+
+        {action == 'edit' ? (
+          <FormField
+            control={form.control}
+            name="id"
+            render={({field}) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="hidden" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        ) : ''}
 
         <FormField
           control={form.control}
@@ -65,7 +103,7 @@ export function UserForm() {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Brian May" {...field} />
+                <Input placeholder="Brian May" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,7 +119,7 @@ export function UserForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="your@email.com" {...field} />
+                <Input placeholder="your@email.com" {...field} disabled={submitting || action == 'edit'} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -95,7 +133,7 @@ export function UserForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="*******" {...field} />
+                <Input type="password" placeholder="*******" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,7 +147,7 @@ export function UserForm() {
             <FormItem>
               <FormLabel>Re-type Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="*******" {...field} />
+                <Input type="password" placeholder="*******" {...field} disabled={submitting} />
               </FormControl>
               <FormMessage />
             </FormItem>

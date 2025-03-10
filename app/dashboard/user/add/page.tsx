@@ -1,4 +1,4 @@
-import { UserForm } from "./_form";
+import { UserForm } from "./../_form";
 
 
 export default async function AddUser() {

@@ -1,6 +1,6 @@
 'use server'
 
-import { userSchema } from "./schema";
+import { userSchema } from "./../schema";
 import http, { ResponseObject } from "@/lib/http";
 import { z } from "zod";
 

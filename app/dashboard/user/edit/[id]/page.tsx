@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { UserForm } from "./_form";
+import { UserForm } from "./../../_form";
 import { getUser } from "./action";
 
 
