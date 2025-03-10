@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function DELETE(request: NextRequest) : Promise<NextResponse<ResponseObject>> {
   const body = await request.json()
-  console.log(body)
 
   const resp = await http().delete(`/api/member/${body.id}`, {})
 

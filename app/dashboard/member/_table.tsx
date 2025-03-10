@@ -6,6 +6,7 @@ import { use } from "react";
 import AlertDelete from "@/components/shared/dashboard/alert-delete";
 import { useRouter } from "next/navigation";
 import { columns } from "./_columns";
+import AlertLoading from "@/components/shared/dashboard/alert-loading";
 
 export function MemberTable({
   members,
@@ -28,6 +29,7 @@ export function MemberTable({
       />
 
       <AlertDelete />
+      <AlertLoading title="Regenerate QR Code" />
     </>
   )
   

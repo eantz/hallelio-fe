@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { Member } from './schema';
+import { RegenerateQRCode } from './_regenerate_qr_code';
 
 export const columns: ColumnDef<Member>[] = [
   {
@@ -47,6 +48,8 @@ export const columns: ColumnDef<Member>[] = [
             <DropdownMenuItem>
               <Link href={`/dashboard/member/edit/${member.id}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
+
+            {/* <RegenerateQRCode id={member.id} /> */}
             
             <DataTableDeleteAction 
               deleteEndpoint="/api/member"

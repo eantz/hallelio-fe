@@ -30,7 +30,7 @@ export function DataTableDeleteAction({
   return (
     <>
       <DropdownMenuItem 
-        className="text-red-600 focus:text-red-700"
+        className="text-red-600 focus:text-red-700 cursor-pointer"
         onClick={() => {
           openConfirmation({
             onAction: handleDeleteAction,
