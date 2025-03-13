@@ -49,7 +49,7 @@ export const columns: ColumnDef<Member>[] = [
               <Link href={`/dashboard/member/edit/${member.id}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
 
-            {/* <RegenerateQRCode id={member.id} /> */}
+            <RegenerateQRCode id={member.id} />
             
             <DataTableDeleteAction 
               deleteEndpoint="/api/member"

@@ -1,7 +1,5 @@
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import useAlertDeleteStore from "@/stores/alertDeleteStore";
 import useAlertLoadingStore from "@/stores/alertLoadingStore";
-import { redirect } from "next/navigation";
 
 export function RegenerateQRCode({
   id
@@ -9,22 +7,42 @@ export function RegenerateQRCode({
   id: string,
 }) {
 
-  const { setOpen, setLoading, openConfirmation } = useAlertLoadingStore()
+  const { setMessage, setLoading, setErrorMessage, openConfirmation, closeConfirmation } = useAlertLoadingStore()
 
   const handleRegenerateQRCode = async() => {
-    console.log('yes')
+    openConfirmation({
+      onCancel: () => {}
+    })
+
+    setLoading(true)
+
+    const resp = await fetch('/api/member/regenerate-qr-code', {
+      method: 'POST',
+      body: JSON.stringify({
+        id: id
+      })
+    })
+
+    const body = await resp.json()
+
+    if (resp.status === 500) {
+      setLoading(false)
+      setErrorMessage(body.message.message)
+    } else {
+      setLoading(false)
+      setMessage('Done processing request')
+      
+        setTimeout(() => {
+          closeConfirmation()
+        }, 2000)
+    }
   }
 
   return (
     <>
       <DropdownMenuItem 
         className="cursor-pointer"
-        onClick={() => {
-          openConfirmation({
-            onAction: handleRegenerateQRCode,
-            onCancel: () => {}
-          })
-        }}
+        onClick={handleRegenerateQRCode}
       >
         Regenerate QR Code
       </DropdownMenuItem>

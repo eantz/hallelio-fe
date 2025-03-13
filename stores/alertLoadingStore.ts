@@ -3,14 +3,16 @@ import { create } from 'zustand'
 interface AlertLoadingState {
   open: boolean;
   loading: boolean,
+  message: string,
+  errorMessage: string,
   setOpen: (open: boolean) => void;
   setLoading: (loading: boolean) => void;
-  onAction: () => void;
+  setMessage: (message: string) => void;
+  setErrorMessage: (errorMessage: string) => void;
 }
 
 interface AlertLoadingActions {
   openConfirmation: (data: {
-    onAction: () => void;
     onCancel: () => void;
   }) => void;
   closeConfirmation: () => void;
@@ -19,21 +21,23 @@ interface AlertLoadingActions {
 const useAlertLoadingStore = create<AlertLoadingState & AlertLoadingActions>((set) => ({
   open: false,
   loading: false,
+  message: 'Processing request...',
+  errorMessage: '',
   setOpen: (open) => set(() => ({open: open})),
   setLoading: (loading) => set(() => ({loading: loading})),
-  onAction: () => {},
+  setMessage: (message) => set(() => ({message: message})),
+  setErrorMessage: (errorMessage) => set(() => ({errorMessage: errorMessage})),
   openConfirmation: (data) => 
     set(() => ({
       open: true,
       loading: false,
-      onAction: data.onAction,
+      errorMessage: '',
       onCancel: data.onCancel
     })),
   closeConfirmation: () =>
     set(() => ({
       open: false,
       loading: false,
-      onAction: () => {},
       onCancel: () => {}
     })),
 }))
