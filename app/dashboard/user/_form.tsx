@@ -74,7 +74,7 @@ export function UserForm({
         {isSuccess ? (
           <Alert className="bg-green-300 border border-green-600 text-green-950">
             <LoaderCircle className="h-4 w-4 animate-spin" />
-            <AlertTitle className="font-bold">Success adding user!</AlertTitle>
+            <AlertTitle className="font-bold">Success {action == 'add' ? 'adding' : 'updating'} user!</AlertTitle>
             <AlertDescription>
               You will soon be redirected
             </AlertDescription>

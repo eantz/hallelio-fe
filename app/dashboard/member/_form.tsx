@@ -105,14 +105,14 @@ export function MemberForm({
   }
 
   return (
-    <Form {...form}>     
+    <Form {...form}>
       <form method="POST" onSubmit={form.handleSubmit(submitHandler)} className="space-y-4 mt-10">
         <FormMessage>{form.formState.errors.root?.message}</FormMessage>
         
         {isSuccess ? (
           <Alert className="bg-green-300 border border-green-600 text-green-950">
             <LoaderCircle className="h-4 w-4 animate-spin" />
-            <AlertTitle className="font-bold">Success adding user!</AlertTitle>
+            <AlertTitle className="font-bold">Success {action == 'add' ? 'adding' : 'updating'} member!</AlertTitle>
             <AlertDescription>
               You will soon be redirected
             </AlertDescription>
@@ -195,7 +195,7 @@ export function MemberForm({
                       disabled={submitting}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(field.value, "yyyy-MM-dd")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -211,7 +211,6 @@ export function MemberForm({
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
-                    initialFocus
                   />
                 </PopoverContent>
               </Popover>
