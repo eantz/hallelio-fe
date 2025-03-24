@@ -8,6 +8,7 @@ export type Event = {
   location: string,
   start_time: string,
   end_time: string,
+  is_recurring: boolean,
   exception_event_id: string | null
 }
 
