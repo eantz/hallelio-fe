@@ -53,7 +53,7 @@ export const columns: ColumnDef<Event>[] = [
           <DropdownMenuContent>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Link href={`/dashboard/event/edit/${event.id}`} className="w-full">Edit</Link>
+              <Link href={`/dashboard/event/edit/${event.exception_event_id ?? event.id}?start_time=${event.start_time}&end_time=${event.end_time}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
             
             <DataTableDeleteAction 

@@ -1,8 +1,8 @@
 'use client';
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { eventSchema, EventTypes, EventTypeString, formInitialState, RecurrenceTypes } from "./schema";
+import { EditModes, EditModeString, eventSchema, EventTypes, EventTypeString, formInitialState, RecurrenceTypes } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { populateFormErrorResponse } from "@/lib/errors";
@@ -25,22 +25,29 @@ import { Switch } from "@/components/ui/switch";
 import { TimePicker24 } from "@/components/ui/time-picker-24";
 
 export function EventForm({
-  event
+  event,
+  startTime = "",
+  endTime = ""
 }: {
-  event?: Promise<ResponseObject>
+  event?: Promise<ResponseObject>,
+  startTime?: string,
+  endTime?: string
 }) {
+  const eventData = event ? use(event) : null
+  const action = eventData == null ? 'add' : 'edit'
+
   const [submitting, setSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
   const [recurringEndDateOpen, setRecurringEndDateOpen] = useState(false)
-
-  const eventData = event ? use(event) : null
   
   const [startDateSelected, setStartDateSelected] = useState<Date | undefined>(eventData?.data?.start_time !== undefined ? parse(eventData?.data?.start_time, 'yyyy-MM-dd HH:mm:ss', new Date()) : new Date())
   const [endDateSelected, setEndDateSelected] = useState<Date | undefined>(eventData?.data?.end_time !== undefined ? parse(eventData?.data?.end_time, 'yyyy-MM-dd HH:mm:ss', new Date()) : new Date())
 
-  const action = eventData == null ? 'add' : 'edit'
-
+  const [showRecurringFields, setShowRecurringFields] = useState(action === 'add' && Boolean(eventData?.data?.is_recurring))
+  const showRecurringSwitch = action == 'add'
+  const showEditMode = Boolean(eventData?.data?.is_recurring)
+  
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
     defaultValues: action == 'add' ? formInitialState : {
@@ -51,15 +58,29 @@ export function EventForm({
       location: eventData?.data?.location ?? '',
       start_time: startDateSelected,
       end_time: endDateSelected,
-      is_recurring: eventData?.data?.is_recurring,
+      is_recurring: Boolean(eventData?.data?.is_recurring),
+      mode: EditModes[0],
       recurrence: {
-        recurrence_type: eventData?.data?.recurrence.recurrence_type ?? RecurrenceTypes[0],
-        start_date: eventData?.data?.recurrence?.start_date !== undefined ? parse(eventData?.data?.recurrence?.start_date , 'yyyy-MM-dd HH:mm:ss', new Date()) : new Date(),
-        end_date: eventData?.data?.recurrence?.end_date !== undefined ? parse(eventData?.data?.recurrence?.end_date, 'yyyy-MM-dd HH:mm:ss', new Date()) : new Date(),
-        interval: eventData?.data?.recurrence.interval ?? 1,
+        recurrence_type: eventData?.data?.recurrence?.recurrence_type ?? RecurrenceTypes[0],
+        start_date: eventData?.data?.recurrence?.start_date !== undefined ? parse(eventData?.data?.recurrence?.start_date , 'yyyy-MM-dd', new Date()) : new Date(),
+        end_date: eventData?.data?.recurrence?.end_date !== undefined ? parse(eventData?.data?.recurrence?.end_date, 'yyyy-MM-dd', new Date()) : new Date(),
+        interval: eventData?.data?.recurrence?.interval ?? 1,
       }
     }
   })
+
+  useEffect(() => {
+    if (eventData?.status === 'error') {
+      populateFormErrorResponse(form, eventData?.message?.message)
+    }
+
+    if (eventData && eventData?.data?.id === undefined) {
+      populateFormErrorResponse(form, 'Event not found')
+      setSubmitting(true)
+    }
+
+  }, [eventData])
+  
 
   async function submitHandler(values: z.infer<typeof eventSchema>) {
     setSubmitting(true)
@@ -69,7 +90,7 @@ export function EventForm({
     if (action == 'add') {
       resp = await addEvent(values)
     } else {
-      resp = await editEvent(values)
+      resp = await editEvent(values, startTime, endTime)
     }
     
 
@@ -92,9 +113,6 @@ export function EventForm({
     }
     const originalTime = format(originalDateTime, 'HH:mm:ss')
     const newTime = format(newDateTime, 'HH:mm:ss')
-
-    console.log('original time: ' + originalTime)
-    console.log('new time: ' + newTime)
 
     if (originalTime == newTime) {
       return newDateTime
@@ -132,6 +150,7 @@ export function EventForm({
           />
         ) : ''}
 
+        
         <FormField
           control={form.control}
           name="event_type"
@@ -141,7 +160,7 @@ export function EventForm({
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
-                disabled={submitting}
+                disabled={submitting || action === 'edit'}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -154,10 +173,15 @@ export function EventForm({
                   ))}
                 </SelectContent>
               </Select>
+
+              {action === 'edit' && <input type="hidden" {...field} />}
+
               <FormMessage />
             </FormItem>
           )}
         />
+
+        
 
 
         <FormField 
@@ -287,27 +311,71 @@ export function EventForm({
             </FormControl>
           </FormItem>
         </div>
+
+
+        {showEditMode && 
+          <FormField
+            control={form.control}
+            name="mode"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Edit Mode</FormLabel>
+                <Select
+                  onValueChange={(val) => {
+                    field.onChange(val)
+                    
+                    if (val === EditModes[1]) {
+                      form.setValue('recurrence.start_date', form.getValues('start_time'))
+                    }
+                    
+
+                    setShowRecurringFields(val === EditModes[1])
+                  }}
+                  defaultValue={field.value || 'this'}
+                  disabled={submitting}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose Edit Mode" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {EditModes.map((el) => (
+                      <SelectItem key={el} value={el}>{EditModeString[el]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        }
         
 
-        <FormField 
-          control={form.control}
-          name="is_recurring"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Recurring Event?</FormLabel>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="ml-2"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {form.getValues('is_recurring') &&
+        {showRecurringSwitch && 
+          <FormField 
+            control={form.control}
+            name="is_recurring"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recurring Event?</FormLabel>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={(val) => {
+                      field.onChange(val)
+                      setShowRecurringFields(val)
+                    }}
+                    className="ml-2"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        }
+        
+        {showRecurringFields &&
           <>
             <FormField
               control={form.control}
@@ -392,8 +460,6 @@ export function EventForm({
                 </FormItem>
               )}
             />
-
-            
           </>
         }
 

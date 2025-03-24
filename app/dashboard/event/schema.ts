@@ -7,7 +7,8 @@ export type Event = {
   description: string,
   location: string,
   start_time: string,
-  end_time: string
+  end_time: string,
+  exception_event_id: string | null
 }
 
 export const EventTypes = ['sunday_service', 'kids_sunday_service', 'cell_group', 'community'] as const
@@ -20,8 +21,14 @@ export const EventTypeString: Record<string, string> = {
 
 export const RecurrenceTypes = ['daily', 'weekly', 'monthly'] as const
 
+export const EditModes = ['this', 'this_and_following'] as const
+export const EditModeString: Record<string, string> = {
+  'this': 'This event only',
+  'this_and_following': 'This and following events'
+}
+
 export const eventSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   event_type: z.enum(EventTypes),
   title: z.string().max(255),
   description: z.string(),
@@ -29,6 +36,7 @@ export const eventSchema = z.object({
   start_time: z.date(),
   end_time: z.date(),
   is_recurring: z.boolean(),
+  mode: z.enum(EditModes).nullable(),
   recurrence: z.object({
     recurrence_type: z.enum(RecurrenceTypes),
     start_date: z.date(),
@@ -38,7 +46,7 @@ export const eventSchema = z.object({
 })
 
 export const formInitialState = {
-  id: "",
+  id: 0,
   event_type: EventTypes[0],
   title: "",
   description: "",
@@ -46,6 +54,7 @@ export const formInitialState = {
   start_time: new Date(),
   end_time: new Date(),
   is_recurring: false,
+  mode: null,
   recurrence: {
     recurrence_type: RecurrenceTypes[0],
     start_date: new Date(),
