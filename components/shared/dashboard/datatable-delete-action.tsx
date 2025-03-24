@@ -1,16 +1,20 @@
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import useAlertDeleteStore from "@/stores/alertDeleteStore";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export function DataTableDeleteAction({
   deleteEndpoint,
-  deleteParams
+  deleteParams,
+  label = 'Delete'
 }: {
   deleteEndpoint: string,
-  deleteParams: any
+  deleteParams: any,
+  label?: string
 }) {
 
   const { setOpen, setLoading, openConfirmation } = useAlertDeleteStore()
+
+  const router = useRouter();
 
   const handleDeleteAction = async() => {
     setLoading(true)
@@ -24,7 +28,8 @@ export function DataTableDeleteAction({
 
     setLoading(false)
     setOpen(false)
-    redirect('/dashboard/user')
+
+    router.refresh();
   }
 
   return (
@@ -38,7 +43,7 @@ export function DataTableDeleteAction({
           })
         }}
       >
-        Delete
+        {label}
       </DropdownMenuItem>
     </>
   )

@@ -56,12 +56,32 @@ export const columns: ColumnDef<Event>[] = [
               <Link href={`/dashboard/event/edit/${event.exception_event_id ?? event.id}?start_time=${event.start_time}&end_time=${event.end_time}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
             
+            
             <DataTableDeleteAction 
-              deleteEndpoint="/api/event"
+              deleteEndpoint={`/api/event`}
               deleteParams={{
-                id: event.id
+                id: event.id,
+                selected_start_time: event.start_time,
+                selected_end_time: event.end_time,
+                mode: 'this'
               }}
+              label={(event.is_recurring) ? 'Delete this event only' : 'Delete'}
             />
+            
+            
+            {Boolean(event.is_recurring) &&
+              <DataTableDeleteAction 
+                deleteEndpoint={`/api/event`}
+                deleteParams={{
+                  id: event.id,
+                  selected_start_time: event.start_time,
+                  selected_end_time: event.end_time,
+                  mode: 'this_and_following'
+                }}
+                label='Delete this and following'
+              />
+            }
+
           </DropdownMenuContent>
         </DropdownMenu>
       )

@@ -5,7 +5,6 @@ import { ResponseObject } from "@/lib/http";
 import { use } from "react";
 import AlertDelete from "@/components/shared/dashboard/alert-delete";
 import { useRouter } from "next/navigation";
-import AlertLoading from "@/components/shared/dashboard/alert-loading";
 import { columns } from "./_columns";
 import { PaginationState } from "@tanstack/react-table";
 
@@ -33,7 +32,6 @@ export function EventTable({
       />
 
       <AlertDelete />
-      <AlertLoading title="Regenerate QR Code" />
     </>
   )
   

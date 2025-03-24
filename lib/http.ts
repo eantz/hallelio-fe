@@ -66,10 +66,12 @@ function http() {
     });
   }
 
-  async function remove(path: string, data: Record<string, any>) : Promise<any> {
+  async function remove(path: string, params: Record<string, any>) : Promise<any> {
     return await axiosInstance.delete(
       path, 
-      data
+      {
+        params: params
+      }
     )
     .then(res => {
       return res;
