@@ -1,5 +1,5 @@
 import { EventForm } from "../../_form";
-import { getEvent } from "./actions";
+import { getEvent } from "../../fetcher";
 
 export default async function AddEvent({
   params,

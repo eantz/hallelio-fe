@@ -21,3 +21,23 @@ export async function getEvents(startDate: string, endDate: string): Promise<Res
   }
 
 }
+
+export async function getEvent(id: string, start_time: string, end_time: string): Promise<ResponseObject> {
+  const resp = await http().get(`/api/event/${id}`, {
+    'start_time': start_time,
+    'end_time': end_time,
+    'include_recurrence_info': 1
+  })
+
+  if (resp.status !== 200) {
+    return {
+      status: "error",
+      message: resp.data,
+    }
+  }
+
+  return {
+    status: "success",
+    data: resp.data,
+  }
+}

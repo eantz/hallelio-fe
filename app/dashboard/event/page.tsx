@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getEvents } from "./actions";
+import { getEvents } from "./fetcher";
 import { addDays, format, parse } from "date-fns";
 import { EventTable } from "./_table";
 import TableFilter from "./_table_filter";

@@ -1,4 +1,4 @@
-import { getUsers } from "./actions"
+import { getUsers } from "./fetcher"
 import { Button } from "@/components/ui/button"
 import { PaginationState } from "@tanstack/react-table"
 import Link from "next/link"

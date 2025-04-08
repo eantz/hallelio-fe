@@ -17,3 +17,19 @@ export async function getUsers(pageNum: number): Promise<ResponseObject> {
   }
 
 }
+
+export async function getUser(id: number) : Promise<ResponseObject> {
+  const resp = await http().get(`/api/user/${id}`, null)
+
+  if (resp.status !== 200) {
+    return {
+      status: "error",
+      message: resp.data,
+    }
+  }
+
+  return {
+    status: "success",
+    data: resp.data,
+  }
+}

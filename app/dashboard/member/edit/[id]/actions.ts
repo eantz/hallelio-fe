@@ -5,22 +5,6 @@ import http, { ResponseObject } from "@/lib/http";
 import { format } from "date-fns";
 import { z } from "zod";
 
-export async function getMember(id: string): Promise<ResponseObject> {
-  const resp = await http().get(`/api/member/${id}`, null)
-
-  if (resp.status !== 200) {
-    return {
-      status: "error",
-      message: resp.data,
-    }
-  }
-
-  return {
-    status: "success",
-    data: resp.data,
-  }
-}
-
 export async function editMember(data: z.infer<typeof memberSchema>) : Promise<ResponseObject> {
 
   const params : Record<string, any> = {
