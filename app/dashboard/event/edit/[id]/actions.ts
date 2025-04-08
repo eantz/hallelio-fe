@@ -27,8 +27,6 @@ export async function editEvent(data: z.infer<typeof eventSchema>, startTime: st
     }
   }
 
-  console.log(params)
-
   let base_url = `/api/event/${data.id}`
   if (data.mode !== null) {
     base_url += `?selected_start_time=${startTime}&selected_end_time=${endTime}`

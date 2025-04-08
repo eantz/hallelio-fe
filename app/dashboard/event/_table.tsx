@@ -7,6 +7,7 @@ import AlertDelete from "@/components/shared/dashboard/alert-delete";
 import { useRouter } from "next/navigation";
 import { columns } from "./_columns";
 import { PaginationState } from "@tanstack/react-table";
+import AlertLoading from "@/components/shared/dashboard/alert-loading";
 
 export function EventTable({
   events
@@ -32,6 +33,10 @@ export function EventTable({
       />
 
       <AlertDelete />
+      
+      <AlertLoading 
+        title="Launching attendance scanner..." 
+      />
     </>
   )
   

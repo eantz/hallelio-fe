@@ -8,6 +8,7 @@ import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { Event, EventTypeString } from './schema';
 import { format, parse } from 'date-fns';
+import { LaunchAttendanceScanner } from './_launch_attendance_scanner';
 
 export const columns: ColumnDef<Event>[] = [
   {
@@ -55,7 +56,14 @@ export const columns: ColumnDef<Event>[] = [
             <DropdownMenuItem>
               <Link href={`/dashboard/event/edit/${event.exception_event_id ?? event.id}?start_time=${event.start_time}&end_time=${event.end_time}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
-            
+
+            <LaunchAttendanceScanner 
+              actionData={{
+                event_id: event.exception_event_id ?? event.id,
+                start_time: event.start_time,
+                end_time: event.end_time
+              }}
+            />
             
             <DataTableDeleteAction 
               deleteEndpoint={`/api/event`}

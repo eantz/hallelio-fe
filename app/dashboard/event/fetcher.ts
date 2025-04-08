@@ -41,3 +41,19 @@ export async function getEvent(id: string, start_time: string, end_time: string)
     data: resp.data,
   }
 }
+
+export async function getEventOccurence(id: string): Promise<ResponseObject> {
+  const resp = await http().get(`/api/event/occurence/${id}`, {})
+
+  if (resp.status !== 200) {
+    return {
+      status: "error",
+      message: resp.data,
+    }
+  }
+  
+  return {
+    status: "success",
+    data: resp.data,
+  }
+}
