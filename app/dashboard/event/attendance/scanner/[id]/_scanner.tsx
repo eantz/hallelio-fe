@@ -1,27 +1,42 @@
 'use client';
 
-import { ResponseObject } from "@/lib/http";
 import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
-import { use, useState } from "react";
+import { useState } from "react";
 import { registerAttendance } from "./actions";
 import { attendanceSchema } from "../../../schema";
-import { format, parse } from "date-fns";
+import { parse } from 'date-fns';
+import AlertLoading from '@/components/shared/dashboard/alert-loading';
+import useAlertLoadingStore from '@/stores/alertLoadingStore';
+
+type attendanceListType = {
+  memberId: number,
+  memberName: string,
+  attendanceTime: Date,
+  attendanceType: string,
+  guestName: string | null,
+}
 
 export default function ScannerContainer({
-  event,
+  eventOccurenceId,
 }:{
-  event: Promise<ResponseObject>
+  eventOccurenceId: number
 }) {
 
-  const [attendanceList, setAttendanceList] = useState<string[]>([]);
+  const { setOpen, setErrorMessage, openConfirmation } = useAlertLoadingStore()
 
-  const eventData = use(event);
+  const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>({});
 
   const handleScan = async (barcodeData: IDetectedBarcode) => {
     console.log(barcodeData)
 
+    openConfirmation({
+      onCancel: () => {
+        setOpen(false)
+      },
+    })
+
     const params = attendanceSchema.safeParse({
-      event_occurence_id: eventData.data?.id,
+      event_occurence_id: eventOccurenceId,
       attendance_type: "member",
       attendance_time: new Date(),
       member_id: barcodeData.rawValue,
@@ -29,66 +44,73 @@ export default function ScannerContainer({
     })
 
     if (!params.success) {
-      console.error(params.error);
+      let errors = ''
+      params.error.issues.map((issue) => {
+        errors += issue.message
+      })
+      setErrorMessage(errors)
       return;
     }
 
     const resp = await registerAttendance(params.data)
     if (resp.status !== "success") {
-      console.error(resp.message);
+      setErrorMessage(resp.message?.error);
       return;
     }
 
-    const member_name = resp.data?.member.first_name + " " + resp.data?.member.last_name
+    const newAttendanceList = {
+      memberId: resp.data?.member.id,
+      memberName: resp.data?.member.first_name + " " + resp.data?.member.last_name,
+      attendanceTime: parse(resp.data?.attended_at, 'yyyy-MM-dd HH:mm:ss', new Date()),
+      attendanceType: resp.data?.attendance_type,
+      guestName: resp.data?.guest_name,
+    }
     
     setAttendanceList((prev) => {
-      if (prev.includes(member_name)) {
-        return [...prev]
-      } else {
-        return [...prev, member_name]
-      }
+        return {
+          ...prev,
+          [newAttendanceList.memberId]: newAttendanceList
+        }
     });
     
+    setOpen(false)
   }
 
-  const start_time = parse(eventData.data?.event.start_time, 'yyyy-MM-dd HH:mm:ss', new Date())
-  const end_time = parse(eventData.data?.event.end_time, 'yyyy-MM-dd HH:mm:ss', new Date())
-
   return (
-    <div className="pt-4">
-      <h2>
-        <span className="font-bold">{eventData.data?.event.title}</span> -&nbsp;
-        <span className="text-gray-500 text-sm">{format(start_time, 'yyyy-MM-dd HH:mm')} - {format(end_time, 'HH:mm')}</span>
-        
-      </h2>
+    <div className="flex flex-row w-full gap-8">
+      <div className="w-[600px] h-[600px]">
+        <Scanner 
+          onScan={(data) => {
+            handleScan(data[0]);
+          }}
+          onError={(error) => {
+            console.error(error);
+          }}
+          allowMultiple={true}
+          scanDelay={1000}
+        />
+      </div>
 
-      <div className="flex flex-row w-full mt-4 gap-4">
-        <div className="w-[600px] h-[600px]">
-          <Scanner 
-            onScan={(data) => {
-              handleScan(data[0]);
-            }}
-            onError={(error) => {
-              console.error(error);
-            }}
-            allowMultiple={true}
-            scanDelay={1000}
-          />
-        </div>
-        <div className="w-1/4 h-[600px]"> 
-          <h3>Attendance List</h3>
+      <div className="h-[600px] flex-auto max-w-[400px]"> 
 
-          <div className="h-full overflow-y-scroll p-2">
-            {attendanceList.map((name, index) => (
-              <div key={index} className="bg-gray-100 p-2 rounded-md mb-2">
-                {name}
-              </div>
-            ))}
-          </div>
+        <div className="h-full overflow-y-scroll p-4 border border-gray-400 rounded-md">
+          {Object.keys(attendanceList).length === 0 && (
+            <div className="text-gray-500 text-sm">
+              No attendance recorded
+            </div>
+          )}
+
+          {Object.entries(attendanceList).map(([key, attendance]: [string, attendanceListType]) => (
+            <div key={key} className="bg-blue-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-blue-600 text-blue-900">
+              {attendance.memberName}
+            </div>
+          ))}
         </div>
       </div>
-      
-      
+
+      <AlertLoading 
+        title="Processing..."
+      />
     </div>
   )
 }

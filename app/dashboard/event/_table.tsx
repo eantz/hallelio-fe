@@ -14,6 +14,7 @@ export function EventTable({
 }: {
   events: Promise<ResponseObject>
 }) {
+
   const eventsData = use(events)
   const router = useRouter()
 

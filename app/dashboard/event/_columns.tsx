@@ -7,7 +7,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { Event, EventTypeString } from './schema';
-import { format, parse } from 'date-fns';
+import { differenceInMinutes, format, parse } from 'date-fns';
 import { LaunchAttendanceScanner } from './_launch_attendance_scanner';
 
 export const columns: ColumnDef<Event>[] = [
@@ -43,6 +43,10 @@ export const columns: ColumnDef<Event>[] = [
     cell: ({row}) => {
       const event = row.original
 
+      const currentTime = new Date();
+      const startTime = parse(event.start_time, 'yyyy-MM-dd HH:mm:ss', new Date());
+      const endTime = parse(event.end_time, 'yyyy-MM-dd HH:mm:ss', new Date());
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -57,14 +61,16 @@ export const columns: ColumnDef<Event>[] = [
               <Link href={`/dashboard/event/edit/${event.exception_event_id ?? event.id}?start_time=${event.start_time}&end_time=${event.end_time}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
 
-            <LaunchAttendanceScanner 
-              actionData={{
-                event_id: event.exception_event_id ?? event.id,
-                start_time: event.start_time,
-                end_time: event.end_time
-              }}
-            />
-            
+            {(differenceInMinutes(startTime, currentTime) < 15 && differenceInMinutes(endTime, currentTime) > -60) && 
+              <LaunchAttendanceScanner 
+                actionData={{
+                  event_id: event.exception_event_id ?? event.id,
+                  start_time: event.start_time,
+                  end_time: event.end_time
+                }}
+              />
+            }
+              
             <DataTableDeleteAction 
               deleteEndpoint={`/api/event`}
               deleteParams={{

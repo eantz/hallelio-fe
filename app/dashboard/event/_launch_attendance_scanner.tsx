@@ -54,8 +54,11 @@ export function LaunchAttendanceScanner({
   
     router.push(`/dashboard/event/attendance/scanner/${resp.data?.id}`)
     
-    setLoading(false)
-    setOpen(false)
+    setTimeout(() => {
+      setLoading(false)
+      setOpen(false)
+    }, 2000)
+    
     
   }
 
@@ -67,7 +70,7 @@ export function LaunchAttendanceScanner({
           handleTriggerAction()
         }}
       >
-        Launching Attendance Scanner
+        Attendance Scanner
       </DropdownMenuItem>
     </>
   )
