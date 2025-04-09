@@ -76,3 +76,15 @@ export const attendanceSchema = z.object({
   member_id: z.string().nullable(),
   guest_name: z.string().max(255).nullable(),
 })
+
+export const guestFormSchema = z.object({
+  guest_name: z.string().max(255),
+})
+
+export type attendanceListType = {
+  memberId: string,
+  memberName: string,
+  attendanceTime: Date,
+  attendanceType: string,
+  guestName: string | null,
+}

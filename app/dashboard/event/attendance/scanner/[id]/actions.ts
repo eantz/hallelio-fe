@@ -14,9 +14,6 @@ export async function registerAttendance(data: z.infer<typeof attendanceSchema>)
     guest_name: data.guest_name && data.guest_name !== null ? data.guest_name : '',
   }
 
-  console.log(data)
-  console.log(params)
-
   const resp = await http().post(`/api/attendance/register`, params);
 
   console.log(resp.data)

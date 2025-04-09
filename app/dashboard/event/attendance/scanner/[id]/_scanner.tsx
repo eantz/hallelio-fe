@@ -1,20 +1,15 @@
 'use client';
 
 import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { registerAttendance } from "./actions";
-import { attendanceSchema } from "../../../schema";
+import { attendanceListType, attendanceSchema } from "../../../schema";
 import { parse } from 'date-fns';
 import AlertLoading from '@/components/shared/dashboard/alert-loading';
 import useAlertLoadingStore from '@/stores/alertLoadingStore';
+import GuestForm from './_guest_form';
 
-type attendanceListType = {
-  memberId: number,
-  memberName: string,
-  attendanceTime: Date,
-  attendanceType: string,
-  guestName: string | null,
-}
+
 
 export default function ScannerContainer({
   eventOccurenceId,
@@ -25,6 +20,8 @@ export default function ScannerContainer({
   const { setOpen, setErrorMessage, openConfirmation } = useAlertLoadingStore()
 
   const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>({});
+
+  const attendanceListRef = useRef<null | HTMLDivElement>(null)
 
   const handleScan = async (barcodeData: IDetectedBarcode) => {
     console.log(barcodeData)
@@ -66,19 +63,37 @@ export default function ScannerContainer({
       guestName: resp.data?.guest_name,
     }
     
-    setAttendanceList((prev) => {
-        return {
-          ...prev,
-          [newAttendanceList.memberId]: newAttendanceList
-        }
-    });
+    updateAttendanceList(newAttendanceList)
     
     setOpen(false)
   }
 
+  const updateAttendanceList = (newAttendance: attendanceListType) => {
+
+    let key: string = newAttendance.memberId
+    if (newAttendance.attendanceType === 'guest') {
+      key = 'guest-' + Math.floor(Date.now() / 1000)
+    }
+
+    setAttendanceList((prev) => {
+        return {
+          ...prev,
+          [key]: newAttendance
+        }
+    });
+  }
+
+  useEffect(() => {
+    const domNode = attendanceListRef.current;
+    if (domNode) {
+      domNode.scrollTop = domNode.scrollHeight;
+    }
+    
+  }, [attendanceList])
+
   return (
     <div className="flex flex-row w-full gap-8">
-      <div className="w-[600px] h-[600px]">
+      <div className="min-w-[600px] h-[600px]">
         <Scanner 
           onScan={(data) => {
             handleScan(data[0]);
@@ -91,9 +106,9 @@ export default function ScannerContainer({
         />
       </div>
 
-      <div className="h-[600px] flex-auto max-w-[400px]"> 
+      <div className="h-[565px] flex-auto max-w-[400px]"> 
 
-        <div className="h-full overflow-y-scroll p-4 border border-gray-400 rounded-md">
+        <div className="h-full overflow-y-scroll p-4 border border-gray-200 rounded-t-md" ref={attendanceListRef}>
           {Object.keys(attendanceList).length === 0 && (
             <div className="text-gray-500 text-sm">
               No attendance recorded
@@ -101,11 +116,22 @@ export default function ScannerContainer({
           )}
 
           {Object.entries(attendanceList).map(([key, attendance]: [string, attendanceListType]) => (
-            <div key={key} className="bg-blue-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-blue-600 text-blue-900">
-              {attendance.memberName}
-            </div>
+            attendance.attendanceType === 'member' ? (
+                <div key={key} className="bg-blue-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-blue-600 text-blue-900">
+                    {attendance.memberName}
+                  </div>
+              ) : (
+                <div key={key} className="bg-orange-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-orange-600 text-orange-900">
+                  {attendance.guestName}
+                </div>
+              )
           ))}
         </div>
+
+        <GuestForm
+          eventOccurenceId={eventOccurenceId}
+          onSuccessAddAttendance={updateAttendanceList}
+        />
       </div>
 
       <AlertLoading 
