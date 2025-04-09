@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MemberTable } from "./_table";
 import { PaginationState } from "@tanstack/react-table";
-import { getMembers } from "./actions";
+import { getMembers } from "./fetcher";
 
 export default async function Member(props: {
   searchParams?: Promise<{

@@ -1,5 +1,5 @@
 import { MemberForm } from "./../../_form";
-import { getMember } from "./actions";
+import { getMember } from "./../../fetcher";
 
 
 export default async function AddMember({

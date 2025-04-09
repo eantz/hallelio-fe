@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { UserForm } from "./../../_form";
-import { getUser } from "./action";
+import { getUser } from "./../../fetcher";
 
 
 export default async function EditUser({

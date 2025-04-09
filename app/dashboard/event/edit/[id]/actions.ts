@@ -5,26 +5,6 @@ import http, { ResponseObject } from "@/lib/http";
 import { format } from "date-fns";
 import { z } from "zod";
 
-export async function getEvent(id: string, start_time: string, end_time: string): Promise<ResponseObject> {
-  const resp = await http().get(`/api/event/${id}`, {
-    'start_time': start_time,
-    'end_time': end_time,
-    'include_recurrence_info': 1
-  })
-
-  if (resp.status !== 200) {
-    return {
-      status: "error",
-      message: resp.data,
-    }
-  }
-
-  return {
-    status: "success",
-    data: resp.data,
-  }
-}
-
 export async function editEvent(data: z.infer<typeof eventSchema>, startTime: string, endTime: string) : Promise<ResponseObject> {
 
   const params : Record<string, any> = {
@@ -46,8 +26,6 @@ export async function editEvent(data: z.infer<typeof eventSchema>, startTime: st
       interval: data.recurrence.interval,
     }
   }
-
-  console.log(params)
 
   let base_url = `/api/event/${data.id}`
   if (data.mode !== null) {

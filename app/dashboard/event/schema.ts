@@ -63,3 +63,28 @@ export const formInitialState = {
     interval: 1
   }
 }
+
+export const eventOccurenceSchema = z.object({
+  event_id: z.number(),
+  occurence_time: z.date(),
+});
+
+export const attendanceSchema = z.object({
+  event_occurence_id: z.number(),
+  attendance_time: z.date(),
+  attendance_type: z.enum(['member', 'guest']),
+  member_id: z.string().nullable(),
+  guest_name: z.string().max(255).nullable(),
+})
+
+export const guestFormSchema = z.object({
+  guest_name: z.string().max(255),
+})
+
+export type attendanceListType = {
+  memberId: string,
+  memberName: string,
+  attendanceTime: Date,
+  attendanceType: string,
+  guestName: string | null,
+}
