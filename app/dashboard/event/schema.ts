@@ -102,6 +102,12 @@ export const attendanceSchema = z.object({
   attendance_type: z.enum(attendanceType),
   member_id: z.string(),
   guest_name: z.string().max(255),
+}).refine((data) => !(data.attendance_type === 'guest' && data.guest_name === ''), {
+  message: "Guest Name is required",
+  path: ['guest_name']
+}).refine((data) => !(data.attendance_type === 'member' && data.member_id === ''), {
+  message: "Member is required",
+  path: ['member_id']
 })
 
 export const guestFormSchema = z.object({
@@ -114,13 +120,4 @@ export type attendanceListType = {
   attendanceTime: Date,
   attendanceType: string,
   guestName: string | null,
-}
-
-export const attendanceFormInitialState = {
-  id: 0,
-  event_occurence_id: 0,
-  attendance_type: attendanceType[1],
-  member_id: "",
-  guest_name: "",
-  attendance_time: new Date(),
 }

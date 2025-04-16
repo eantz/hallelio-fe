@@ -1,76 +1,72 @@
 'use client';
 
 import { useForm } from "react-hook-form";
-import { Attendance, attendanceFormInitialState, attendanceSchema, attendanceType } from "../../schema";
+import { Attendance, attendanceSchema, attendanceType } from "../../schema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parse } from "date-fns";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
-import { useCallback, useState } from "react";
+import { use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { addAttendance } from "./add/actions";
 import { populateFormErrorResponse } from "@/lib/errors";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Check, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { redirect } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Combobox, SearchValuesType } from "@/components/shared/dashboard/combobox";
+import { TimePicker24 } from "@/components/ui/time-picker-24";
+import { ResponseObject } from "@/lib/http";
 
 export function AttendanceForm({
-  eventOccurenceId,
-  attendance
+  eventOccurence,
+  attendance,
 }: {
-  eventOccurenceId: number,
+  eventOccurence: Promise<ResponseObject>
   attendance?: Attendance
 }) {
   const [submitting, setSubmitting] = useState(false)
   const [showGuestNameField, setShowGuestNameField] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  const [memberSelectLoading, setMemberSelectLoading] = useState(false)
-  const [memberSelectOpen, setMemberSelectOpen] = useState(false)
+  const eventOccurenceDetail = use(eventOccurence)
 
-  const [memberOptions, setMemberOptions] = useState([])
-  const [selectedMember, setSelectedMember] = useState<any>({})
-  const [inputSelectedMemberValue, setInputSelectedMemberValue] = useState('')
+  const [attendanceTime, setAttendanceTime] = useState<Date>(parse(eventOccurenceDetail.data?.occurence_time, 'yyyy-MM-dd HH:mm:ss', new Date))
 
-  const memberNameDebounced = useDebouncedCallback(
-    useCallback(async function(value) {
-      setMemberSelectLoading(true)
+  const handleComboboxSearch = async (val: string): Promise<SearchValuesType[]> => {
+    const resp = await fetch(`/api/member/search?name=${val}`, {
+      method: 'GET',
+    })
 
-      const resp = await fetch(`/api/member/search?name=${value}`, {
-        method: 'GET',
-      })
+    const body = await resp.json()
 
-      const body = await resp.json()
+    if (resp.status === 500) {
+      return []
+    }
 
-      if (resp.status === 500) {
-        console.log(body.message)
-      } else {
-        setMemberOptions(() => {
-          return body.data.data
-        })
-        setMemberSelectLoading(false)
-        setMemberSelectOpen(true)
+    const respValue = body.data.data.map((el: any) => {
+      return {
+        key: el.id,
+        value: el.first_name + ' ' + el.last_name
       }
-    }, []),
-    500,
-    { maxWait: 5000}
-  )
-
-  const handleMemberOptionClick = (el: any) => {
-    setSelectedMember(el)
-    setInputSelectedMemberValue(el.first_name + ' ' + el.last_name)
-    form.setValue("member_id", el.id)
+    })
+      
+    return respValue
   }
 
   const action = attendance == undefined ? 'add' : 'edit'
 
   const form = useForm<z.infer<typeof attendanceSchema>>({
     resolver: zodResolver(attendanceSchema),
-    defaultValues: action === 'add' ? attendanceFormInitialState : {
+    defaultValues: action === 'add' ? {
+      id: 0,
+      event_occurence_id: eventOccurenceDetail.data?.id,
+      attendance_type: attendanceType[1],
+      member_id: "",
+      guest_name: "",
+      attendance_time: new Date(),
+    } : {
       id: attendance?.id,
       event_occurence_id: attendance?.event_occurence_id,
       attendance_type: attendance?.attendance_type == 'member' ? attendanceType[0] : attendanceType[1],
@@ -81,29 +77,29 @@ export function AttendanceForm({
   })
 
   async function submitHandler(values: z.infer<typeof attendanceSchema>) {
-      setSubmitting(true)
-  
-      let resp;
-  
-      if (action == 'add') {
-        resp = await addAttendance(values)
-      } else {
-        // resp = await editEvent(values, startTime, endTime)
-      }
-      
-  
-      if (resp?.status == "error") {
-        populateFormErrorResponse(form, resp.message?.errors)
-        setSubmitting(false)
-      } else {
-        setIsSuccess(true)
-  
-        setTimeout(() => {
-          redirect(`/dashboard/attendance/${eventOccurenceId}`)
-        }, 2000)
-      }
-   
+    setSubmitting(true)
+
+    let resp;
+
+    if (action == 'add') {
+      resp = await addAttendance(values)
+    } else {
+      // resp = await editEvent(values, startTime, endTime)
     }
+    
+
+    if (resp?.status == "error") {
+      populateFormErrorResponse(form, resp.message?.errors)
+      setSubmitting(false)
+    } else {
+      setIsSuccess(true)
+
+      setTimeout(() => {
+        redirect(`/dashboard/event/attendance/${eventOccurenceDetail.data?.id}`)
+      }, 2000)
+    }
+  
+  }
 
   return (
     <Form {...form}>
@@ -204,51 +200,18 @@ export function AttendanceForm({
               <FormItem>
                 <FormLabel>Member Name</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Member Name" 
-                    disabled={submitting} 
-                    onChange={(e) => {
-                      memberNameDebounced(e.target.value)
+                  <Combobox 
+                    onSearch={handleComboboxSearch} 
+                    selectItemPlaceholder="Select a member"
+                    searchItemsPlaceholder="Search members.."
+                    noItemPlaceholder="No member found"
+                    className="w-full"
+                    onSelectedValueChanged={(val) => {
+                      form.setValue('member_id', val.key)
                     }}
+                    disabled={submitting}
                   />
                 </FormControl>
-
-                <Popover 
-                  open={memberSelectOpen} 
-                  onOpenChange={setMemberSelectOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <div></div>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    onOpenAutoFocus={(e) => {
-                      e.preventDefault()
-                    }}
-                    className="p-0"
-                  >
-                    {memberSelectLoading && 
-                      <div className="w-full text-center">
-                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                      </div>
-                    }
-                    {!memberSelectLoading && memberOptions.map((el: any, idx: number) => {
-                      return (
-                        <div
-                          key={idx}
-                          className="w-full hover:bg-slate-400 p-2 flex flex-row"
-                          onClick={() => handleMemberOptionClick(el)}
-                        >
-                          <span className="flex-grow text-sm">{el.first_name + ' ' + el.last_name}</span>
-                          <span className="flex-none">
-                            {selectedMember.id === el.id && 
-                              <Check className="h-4 w-4 mt-1" />
-                            }
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </PopoverContent>
-                </Popover>
 
                 <Input type="hidden" {...field} />
                 <FormMessage />
@@ -257,6 +220,26 @@ export function AttendanceForm({
           />
         }
 
+        <FormItem>
+          <FormLabel>Attendance Time</FormLabel>
+          <FormControl>
+            <TimePicker24 
+              date={attendanceTime} 
+              setDate={(d) => {
+                console.log(d)
+                if (d !== undefined) {
+                  setAttendanceTime(d)
+                  form.setValue('attendance_time', d)
+                }
+              }} 
+              showIcon={false}
+              showSecond={false}
+            />
+          </FormControl>
+          
+          <FormMessage />
+        </FormItem>
+        
         <div className="mt-4">
           <Button type="submit" className="mr-4" disabled={submitting}>Submit</Button>
           <Button type="reset" variant="secondary" disabled={submitting} onClick={() => form.reset()}>Reset</Button>
