@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from "zod";
-import { attendanceSchema } from "../../../schema";
+import { attendanceSchema } from "../../schema";
 import http, { ResponseObject } from "@/lib/http";
 import { format } from "date-fns";
 

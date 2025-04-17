@@ -1,5 +1,5 @@
 import { format, parse } from "date-fns"
-import { getEventOccurence } from "../../../fetcher"
+import { getEventAttendances, getEventOccurence } from "../../../fetcher"
 import ScannerContainer from "./_scanner"
 
 export default async function ScannerPage({
@@ -10,6 +10,7 @@ export default async function ScannerPage({
   const eventOccurenceId = (await params).id
 
   const eventOccurence = await getEventOccurence(eventOccurenceId)
+  const attendances = await getEventAttendances(eventOccurenceId, 1, 'desc')
 
   const startTime = parse(eventOccurence.data?.event.start_time, 'yyyy-MM-dd HH:mm:ss', new Date())
   const endTime = parse(eventOccurence.data?.event.end_time, 'yyyy-MM-dd HH:mm:ss', new Date())
@@ -41,6 +42,7 @@ export default async function ScannerPage({
         <div className="w-4/5">
           <ScannerContainer
             eventOccurenceId={eventOccurence.data?.id}
+            attendances={attendances.data?.attendances.data}
           />
         </div>
       </div>

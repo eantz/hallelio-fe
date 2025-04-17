@@ -2,10 +2,10 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ColumnDef, flexRender, getCoreRowModel, PaginationState, useReactTable } from "@tanstack/react-table";
-import Paginator from "./datatable-paginator";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import DataTablePagination from "./datatable-pagination";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -112,7 +112,7 @@ export function DataTable<TData, TValue> ({
           {table.getFilteredRowModel().rows.length} row(s)
         </div>
         <div className="flex justify-end">
-          <Paginator
+          <DataTablePagination
             currentPage={table.getState().pagination.pageIndex}
             totalPages={table.getPageCount()}
             onPageChange={(pageNumber) => handlePageChange(pageNumber)}

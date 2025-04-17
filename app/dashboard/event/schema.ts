@@ -9,7 +9,8 @@ export type Event = {
   start_time: string,
   end_time: string,
   is_recurring: boolean,
-  exception_event_id: string | null
+  exception_event_id: string | null,
+  event_occurence_id: number | null
 }
 
 export const EventTypes = ['sunday_service', 'kids_sunday_service', 'cell_group', 'community'] as const
@@ -68,23 +69,3 @@ export const eventOccurenceSchema = z.object({
   event_id: z.number(),
   occurence_time: z.date(),
 });
-
-export const attendanceSchema = z.object({
-  event_occurence_id: z.number(),
-  attendance_time: z.date(),
-  attendance_type: z.enum(['member', 'guest']),
-  member_id: z.string().nullable(),
-  guest_name: z.string().max(255).nullable(),
-})
-
-export const guestFormSchema = z.object({
-  guest_name: z.string().max(255),
-})
-
-export type attendanceListType = {
-  memberId: string,
-  memberName: string,
-  attendanceTime: Date,
-  attendanceType: string,
-  guestName: string | null,
-}

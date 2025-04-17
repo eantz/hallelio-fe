@@ -61,6 +61,12 @@ export const columns: ColumnDef<Event>[] = [
               <Link href={`/dashboard/event/edit/${event.exception_event_id ?? event.id}?start_time=${event.start_time}&end_time=${event.end_time}`} className="w-full">Edit</Link>
             </DropdownMenuItem>
 
+            {event.event_occurence_id && 
+              <DropdownMenuItem>
+                <Link href={`/dashboard/event/attendance/${event.event_occurence_id}`} className="w-full">Attendances</Link>
+              </DropdownMenuItem>
+            }
+
             {(differenceInMinutes(startTime, currentTime) < 15 && differenceInMinutes(endTime, currentTime) > -60) && 
               <LaunchAttendanceScanner 
                 actionData={{

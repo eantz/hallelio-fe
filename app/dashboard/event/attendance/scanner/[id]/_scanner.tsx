@@ -3,28 +3,49 @@
 import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
 import { useEffect, useRef, useState } from "react";
 import { registerAttendance } from "./actions";
-import { attendanceListType, attendanceSchema } from "../../../schema";
+import { attendanceListType, attendanceSchema } from "../../schema";
 import { parse } from 'date-fns';
 import AlertLoading from '@/components/shared/dashboard/alert-loading';
 import useAlertLoadingStore from '@/stores/alertLoadingStore';
 import GuestForm from './_guest_form';
-
-
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ScannerContainer({
   eventOccurenceId,
+  attendances = []
 }:{
   eventOccurenceId: number
+  attendances?: any[]
 }) {
 
   const { setOpen, setErrorMessage, openConfirmation } = useAlertLoadingStore()
 
-  const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>({});
+  const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>((): Record<string, attendanceListType> => {
+    const reversedAttendance = attendances.reverse()
+    const initialAttendances: Record<string, attendanceListType> = {}
+    reversedAttendance.forEach((val, idx) => {
+      let key = val.member_id
+      if (val.attendance_type === 'guest') {
+        key = 'guest-initial-' + idx
+      }
+
+      initialAttendances[key] = {
+        memberId: val.member_id,
+        attendanceType: val.attendance_type,
+        guestName: val.guest_name,
+        attendanceTime: val.attended_at,
+        memberName: val.member ? val.member.first_name + ' ' + val.member.first_name : ''
+      }
+    })
+
+    console.log(initialAttendances)
+
+    return initialAttendances
+  });
 
   const attendanceListRef = useRef<null | HTMLDivElement>(null)
 
   const handleScan = async (barcodeData: IDetectedBarcode) => {
-    console.log(barcodeData)
 
     openConfirmation({
       onCancel: () => {
@@ -33,11 +54,12 @@ export default function ScannerContainer({
     })
 
     const params = attendanceSchema.safeParse({
+      id: 0, // since new attendace
       event_occurence_id: eventOccurenceId,
       attendance_type: "member",
       attendance_time: new Date(),
       member_id: barcodeData.rawValue,
-      guest_name: null,
+      guest_name: "",
     })
 
     if (!params.success) {
@@ -86,7 +108,8 @@ export default function ScannerContainer({
   useEffect(() => {
     const domNode = attendanceListRef.current;
     if (domNode) {
-      domNode.scrollTop = domNode.scrollHeight;
+      // domNode.scrollTop = domNode.scrollHeight;
+      domNode.scrollIntoView(false)
     }
     
   }, [attendanceList])
@@ -108,25 +131,27 @@ export default function ScannerContainer({
 
       <div className="h-[565px] flex-auto max-w-[400px]"> 
 
-        <div className="h-full overflow-y-scroll p-4 border border-gray-200 rounded-t-md" ref={attendanceListRef}>
-          {Object.keys(attendanceList).length === 0 && (
-            <div className="text-gray-500 text-sm">
-              No attendance recorded
-            </div>
-          )}
+        <ScrollArea className="h-full p-4 border border-gray-200 rounded-t-md">
+          <div className="h-full " ref={attendanceListRef}>
+            {Object.keys(attendanceList).length === 0 && (
+              <div className="text-gray-500 text-sm">
+                No attendance recorded
+              </div>
+            )}
 
-          {Object.entries(attendanceList).map(([key, attendance]: [string, attendanceListType]) => (
-            attendance.attendanceType === 'member' ? (
-                <div key={key} className="bg-blue-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-blue-600 text-blue-900">
-                    {attendance.memberName}
+            {Object.entries(attendanceList).map(([key, attendance]: [string, attendanceListType]) => (
+              attendance.attendanceType === 'member' ? (
+                  <div key={key} className="bg-blue-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-blue-600 text-blue-900">
+                      {attendance.memberName}
+                    </div>
+                ) : (
+                  <div key={key} className="bg-orange-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-orange-600 text-orange-900">
+                    {attendance.guestName}
                   </div>
-              ) : (
-                <div key={key} className="bg-orange-100 odd:bg-opacity-60 rounded-md p-1 mb-1 text-sm border-b border-orange-600 text-orange-900">
-                  {attendance.guestName}
-                </div>
-              )
-          ))}
-        </div>
+                )
+            ))}
+          </div>
+        </ScrollArea>
 
         <GuestForm
           eventOccurenceId={eventOccurenceId}
