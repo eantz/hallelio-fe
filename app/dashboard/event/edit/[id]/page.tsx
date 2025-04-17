@@ -1,7 +1,7 @@
 import { EventForm } from "../../_form";
 import { getEvent } from "../../fetcher";
 
-export default async function AddEvent({
+export default async function EditEvent({
   params,
   searchParams
 }: {

@@ -58,6 +58,22 @@ export async function getEventOccurence(id: string): Promise<ResponseObject> {
   }
 }
 
+export async function getEventAttendance(eventOccurenceId: string, id: string): Promise<ResponseObject> {
+  const resp = await http().get(`/api/attendance/${eventOccurenceId}/${id}`, null)
+
+  if (resp.status !== 200) {
+    return {
+      status: "error",
+      message: resp.data,
+    }
+  }
+  
+  return {
+    status: "success",
+    data: resp.data,
+  }
+}
+
 export async function getEventAttendances(eventOccurenceId: string, page: number): Promise<ResponseObject> {
   const resp = await http().get(`/api/attendance/list?event_occurence_id=${eventOccurenceId}&page=${page}`, null)
 

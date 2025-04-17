@@ -1,11 +1,11 @@
-'use server'
+'use server';
 
 import http, { ResponseObject } from "@/lib/http";
 import { format } from "date-fns";
 import { z } from "zod";
-import { attendanceSchema } from "../../schema";
+import { attendanceSchema } from "../../../schema";
 
-export async function addAttendance(data: z.infer<typeof attendanceSchema>) : Promise<ResponseObject> {
+export async function editAttendance(data: z.infer<typeof attendanceSchema>) : Promise<ResponseObject> {
 
   const params : Record<string, any> = {
     event_occurence_id: data.event_occurence_id,
@@ -17,7 +17,7 @@ export async function addAttendance(data: z.infer<typeof attendanceSchema>) : Pr
 
   console.log(params)
 
-  const resp = await http().post('/api/attendance/register', params);
+  const resp = await http().put(`/api/attendance/update/${data.id}`, params);
 
   console.log(resp.data)
 

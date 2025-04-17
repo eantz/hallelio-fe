@@ -7,7 +7,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { format, parse } from 'date-fns';
-import { Attendance } from '../../schema';
+import { Attendance } from '../schema';
 
 export const columns: ColumnDef<Attendance>[] = [
   {
@@ -40,7 +40,7 @@ export const columns: ColumnDef<Attendance>[] = [
             {
               attendance.attendance_type == 'guest' && 
                 <DropdownMenuItem>
-                  <Link href={`/dashboard/attendance/edit/${attendance.id}`} className="w-full">Edit</Link>
+                  <Link href={`/dashboard/event/attendance/${attendance.event_occurence_id}/edit/${attendance.id}`} className="w-full">Edit</Link>
                 </DropdownMenuItem>
             }
               

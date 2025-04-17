@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm } from "react-hook-form";
-import { Attendance, attendanceSchema, attendanceType } from "../../schema";
+import { attendanceSchema, attendanceType } from "../schema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parse } from "date-fns";
@@ -18,22 +18,31 @@ import { redirect } from "next/navigation";
 import { Combobox, SearchValuesType } from "@/components/shared/dashboard/combobox";
 import { TimePicker24 } from "@/components/ui/time-picker-24";
 import { ResponseObject } from "@/lib/http";
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import { editAttendance } from "./edit/[id]/actions";
 
 export function AttendanceForm({
   eventOccurence,
   attendance,
 }: {
   eventOccurence: Promise<ResponseObject>
-  attendance?: Attendance
+  attendance?: Promise<ResponseObject>
 }) {
   const [submitting, setSubmitting] = useState(false)
   const [showGuestNameField, setShowGuestNameField] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
 
   const eventOccurenceDetail = use(eventOccurence)
+  let attendanceDetail: ResponseObject | undefined = undefined
 
-  const [attendanceTime, setAttendanceTime] = useState<Date>(parse(eventOccurenceDetail.data?.occurence_time, 'yyyy-MM-dd HH:mm:ss', new Date))
+  if (attendance) {
+    attendanceDetail = use(attendance)
+  }
+  
+
+  const [attendanceTime, setAttendanceTime] = useState<Date>(
+    attendanceDetail ? parse(attendanceDetail.data?.attended_at, 'yyyy-MM-dd HH:mm:ss', new Date) : 
+      parse(eventOccurenceDetail.data?.occurence_time, 'yyyy-MM-dd HH:mm:ss', new Date)
+  )
 
   const handleComboboxSearch = async (val: string): Promise<SearchValuesType[]> => {
     const resp = await fetch(`/api/member/search?name=${val}`, {
@@ -56,8 +65,6 @@ export function AttendanceForm({
     return respValue
   }
 
-  const queryClient = new QueryClient();
-
   const action = attendance == undefined ? 'add' : 'edit'
 
   const form = useForm<z.infer<typeof attendanceSchema>>({
@@ -70,12 +77,12 @@ export function AttendanceForm({
       guest_name: "",
       attendance_time: new Date(),
     } : {
-      id: attendance?.id,
-      event_occurence_id: attendance?.event_occurence_id,
-      attendance_type: attendance?.attendance_type == 'member' ? attendanceType[0] : attendanceType[1],
-      member_id: attendance?.member_id,
-      guest_name: attendance?.guest_name,
-      attendance_time: attendance ? parse(attendance?.attended_at, "yyyy-MM-dd HH:mm:ss", new Date) : new Date,
+      id: attendanceDetail?.data?.id,
+      event_occurence_id: attendanceDetail?.data?.event_occurence_id,
+      attendance_type: attendanceDetail?.data?.attendance_type == 'member' ? attendanceType[0] : attendanceType[1],
+      member_id: attendanceDetail?.data?.member_id ?? "",
+      guest_name: attendanceDetail?.data?.guest_name,
+      attendance_time: attendanceDetail ? parse(attendanceDetail?.data?.attended_at, "yyyy-MM-dd HH:mm:ss", new Date) : new Date,
     }
   })
 
@@ -87,9 +94,8 @@ export function AttendanceForm({
     if (action == 'add') {
       resp = await addAttendance(values)
     } else {
-      // resp = await editEvent(values, startTime, endTime)
+      resp = await editAttendance(values)
     }
-    
 
     if (resp?.status == "error") {
       populateFormErrorResponse(form, resp.message?.errors)
@@ -203,7 +209,6 @@ export function AttendanceForm({
               <FormItem>
                 <FormLabel>Member Name</FormLabel>
                 <FormControl>
-                  <HydrationBoundary state={dehydrate(queryClient)}>
                     <Combobox 
                       onSearch={handleComboboxSearch} 
                       selectItemPlaceholder="Select a member"
@@ -215,7 +220,6 @@ export function AttendanceForm({
                       }}
                       disabled={submitting}
                     />
-                  </HydrationBoundary>
                   
                 </FormControl>
 
@@ -232,7 +236,6 @@ export function AttendanceForm({
             <TimePicker24 
               date={attendanceTime} 
               setDate={(d) => {
-                console.log(d)
                 if (d !== undefined) {
                   setAttendanceTime(d)
                   form.setValue('attendance_time', d)
