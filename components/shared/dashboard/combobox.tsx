@@ -3,8 +3,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useCallback, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
+import { useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
+import { useQuery } from "@tanstack/react-query";
 
 export type SearchValuesType = {
   key: string
@@ -13,7 +14,6 @@ export type SearchValuesType = {
 
 type ComboboxProps = {
   onSearch: (val: string) => Promise<SearchValuesType[]>
-  initialItems?: SearchValuesType[]
   onSelectedValueChanged?: (selectedValue: SearchValuesType) => void
   selectItemPlaceholder?: string
   searchItemsPlaceholder?: string
@@ -24,7 +24,6 @@ type ComboboxProps = {
 
 export function Combobox({
   onSearch,
-  initialItems = [],
   onSelectedValueChanged = () => {},
   selectItemPlaceholder = 'Select an item',
   searchItemsPlaceholder = 'Search items...',
@@ -33,17 +32,30 @@ export function Combobox({
   disabled = false
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
-  const [selectedValue, setSelectedValue] = useState<SearchValuesType | null>(null)
-  const [items, setItems] = useState(initialItems)
+  const [searchText, setSearchText] = useState("")
 
-  const searchValue = useDebouncedCallback(
-    useCallback(async (val) => {
-      const searchResults = await onSearch(val)
-      setItems(searchResults)
-    }, []),
+  const [selectedValue, setSelectedValue] = useState<SearchValuesType | null>(null)
+  const [items, setItems] = useState<SearchValuesType[]>([])
+
+  const [searchValue] = useDebounce(
+    searchText,
     700,
     { maxWait: 2000 }
   )
+
+  const {data: queryData} = useQuery({
+    queryKey: ['search', searchValue],
+    queryFn: async () => {
+      const searchResults = await onSearch(searchValue)
+      return searchResults
+    },
+  })
+
+  useEffect(() => {
+    if (queryData !== undefined) {
+      setItems(queryData)
+    }
+  }, [queryData])
 
   const popOverStyles = {
     width: "var(--radix-popover-trigger-width)",
@@ -69,7 +81,7 @@ export function Combobox({
           <CommandInput 
             placeholder={searchItemsPlaceholder} 
             className="h-9" 
-            onValueChange={(e) => searchValue(e)}
+            onValueChange={(e) => setSearchText(e)}
           />
           <CommandList>
             <CommandEmpty>{noItemPlaceholder}</CommandEmpty>

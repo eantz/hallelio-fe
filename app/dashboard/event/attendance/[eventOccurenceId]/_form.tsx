@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 import { Combobox, SearchValuesType } from "@/components/shared/dashboard/combobox";
 import { TimePicker24 } from "@/components/ui/time-picker-24";
 import { ResponseObject } from "@/lib/http";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 
 export function AttendanceForm({
   eventOccurence,
@@ -54,6 +55,8 @@ export function AttendanceForm({
       
     return respValue
   }
+
+  const queryClient = new QueryClient();
 
   const action = attendance == undefined ? 'add' : 'edit'
 
@@ -200,17 +203,20 @@ export function AttendanceForm({
               <FormItem>
                 <FormLabel>Member Name</FormLabel>
                 <FormControl>
-                  <Combobox 
-                    onSearch={handleComboboxSearch} 
-                    selectItemPlaceholder="Select a member"
-                    searchItemsPlaceholder="Search members.."
-                    noItemPlaceholder="No member found"
-                    className="w-full"
-                    onSelectedValueChanged={(val) => {
-                      form.setValue('member_id', val.key)
-                    }}
-                    disabled={submitting}
-                  />
+                  <HydrationBoundary state={dehydrate(queryClient)}>
+                    <Combobox 
+                      onSearch={handleComboboxSearch} 
+                      selectItemPlaceholder="Select a member"
+                      searchItemsPlaceholder="Search members.."
+                      noItemPlaceholder="No member found"
+                      className="w-full"
+                      onSelectedValueChanged={(val) => {
+                        form.setValue('member_id', val.key)
+                      }}
+                      disabled={submitting}
+                    />
+                  </HydrationBoundary>
+                  
                 </FormControl>
 
                 <Input type="hidden" {...field} />
