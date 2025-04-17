@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { attendanceListType, attendanceSchema, guestFormSchema } from "../../../schema";
+import { attendanceListType, attendanceSchema, guestFormSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormItem, FormMessage, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -34,10 +34,11 @@ export default function GuestForm({
     console.log(data)
 
     const params = attendanceSchema.safeParse({
+      id: 0,
       event_occurence_id: eventOccurenceId,
       attendance_type: "guest",
       attendance_time: new Date(),
-      member_id: null,
+      member_id: "",
       guest_name: data.guest_name,
     })
 
