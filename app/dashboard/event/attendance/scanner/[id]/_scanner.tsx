@@ -10,17 +10,38 @@ import useAlertLoadingStore from '@/stores/alertLoadingStore';
 import GuestForm from './_guest_form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-
-
 export default function ScannerContainer({
   eventOccurenceId,
+  attendances = []
 }:{
   eventOccurenceId: number
+  attendances?: any[]
 }) {
 
   const { setOpen, setErrorMessage, openConfirmation } = useAlertLoadingStore()
 
-  const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>({});
+  const [attendanceList, setAttendanceList] = useState<Record<string, attendanceListType>>((): Record<string, attendanceListType> => {
+    const reversedAttendance = attendances.reverse()
+    const initialAttendances: Record<string, attendanceListType> = {}
+    reversedAttendance.forEach((val, idx) => {
+      let key = val.member_id
+      if (val.attendance_type === 'guest') {
+        key = 'guest-initial-' + idx
+      }
+
+      initialAttendances[key] = {
+        memberId: val.member_id,
+        attendanceType: val.attendance_type,
+        guestName: val.guest_name,
+        attendanceTime: val.attended_at,
+        memberName: val.member ? val.member.first_name + ' ' + val.member.first_name : ''
+      }
+    })
+
+    console.log(initialAttendances)
+
+    return initialAttendances
+  });
 
   const attendanceListRef = useRef<null | HTMLDivElement>(null)
 

@@ -3,6 +3,7 @@ import { getEventAttendances } from "../../fetcher"
 import { AttendanceTable } from "./_table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { format, parse } from "date-fns";
 
 export default async function AttendancesPage({
   params,
@@ -25,11 +26,26 @@ export default async function AttendancesPage({
     pageIndex: currentPage
   }
 
+  const startTime = parse(attendances.data?.event.start_time, 'yyyy-MM-dd HH:mm:ss', new Date())
+  const endTime = parse(attendances.data?.event.end_time, 'yyyy-MM-dd HH:mm:ss', new Date())
+
   return (
     <div className="w-full">
       <h1>Attendances</h1>
 
-      {attendances.data?.event.title}
+      <div className="mt-8 flex flex-col gap-2">
+        <div>
+          <span className="text-gray-600 text-sm">Event</span>
+          <h2 className="font-bold">{attendances.data?.event.title}</h2>
+        </div>
+        
+        <div>
+          <span className="text-gray-600 text-sm">Date Time</span>
+          <div>{format(startTime, 'yyyy-MM-dd')} {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}</div>
+        </div>
+        
+      </div>
+      
 
       <div className="grid grid-cols-6 pt-4">
         <div className="col-start-6 flex items-end flex-col">

@@ -74,8 +74,12 @@ export async function getEventAttendance(eventOccurenceId: string, id: string): 
   }
 }
 
-export async function getEventAttendances(eventOccurenceId: string, page: number): Promise<ResponseObject> {
-  const resp = await http().get(`/api/attendance/list?event_occurence_id=${eventOccurenceId}&page=${page}`, null)
+export async function getEventAttendances(eventOccurenceId: string, page: number, sort: string = 'asc'): Promise<ResponseObject> {
+  const resp = await http().get(`/api/attendance/list`, {
+    event_occurence_id: eventOccurenceId,
+    page: page,
+    sort: sort
+  })
 
   if (resp.status !== 200) {
     return {
