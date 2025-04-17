@@ -3,7 +3,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,15 +22,21 @@ type ComboboxProps = {
   disabled?: boolean
 }
 
-export function Combobox({
-  onSearch,
-  onSelectedValueChanged = () => {},
-  selectItemPlaceholder = 'Select an item',
-  searchItemsPlaceholder = 'Search items...',
-  noItemPlaceholder = 'No item found',
-  className = '',
-  disabled = false
-}: ComboboxProps) {
+const Combobox = React.forwardRef<
+  HTMLButtonElement,
+  ComboboxProps
+>((
+  {
+    onSearch,
+    onSelectedValueChanged = () => {},
+    selectItemPlaceholder = 'Select an item',
+    searchItemsPlaceholder = 'Search items...',
+    noItemPlaceholder = 'No item found',
+    className = '',
+    ...props
+  },
+  ref
+) => {
   const [open, setOpen] = useState(false)
   const [searchText, setSearchText] = useState("")
 
@@ -65,11 +71,12 @@ export function Combobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={ref}
           variant="outline"
           role="combobox"
           aria-expanded={open}
           className={cn('w-[200] justify-between', className)}
-          disabled={disabled}
+          {...props}
         >
           {selectedValue ? selectedValue.value : selectItemPlaceholder}
 
@@ -114,4 +121,8 @@ export function Combobox({
       </PopoverContent>
     </Popover>
   )
-}
+})
+
+Combobox.displayName = 'Combobox'
+
+export { Combobox }
